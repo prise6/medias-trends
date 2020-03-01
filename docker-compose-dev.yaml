@@ -22,6 +22,17 @@ services:
       - default
       - netproxy
 
+  sqliteweb:
+    image: coleifer/sqlite-web
+    volumes:
+      - "${PWD}/sqlite:/data"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8080"
+      - "traefik.main.frontend.entryPoints=http"
+    environment:
+      - SQLITE_DATABASE=database_dev.db
+
 networks:
   netproxy:
     external:
