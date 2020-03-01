@@ -1,0 +1,28 @@
+version: "3"
+services:
+  core:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile-dev
+    image: mediastrends-core-dev:0.1.0
+    container_name: mediastrends-core-dev
+    user: root
+    volumes:
+      - "${PWD}:/app"
+      - "${PWD}/data:/data"
+      - "${PWD}/sqlite/:/sqlite"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8888"
+    env_file:
+      - .env
+    environment:
+      - MODE=dev
+    networks:
+      - default
+      - netproxy
+
+networks:
+  netproxy:
+    external:
+      name: netproxy

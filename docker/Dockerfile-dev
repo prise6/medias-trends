@@ -1,0 +1,11 @@
+ARG BASE_CONTAINER=python:3.7-buster
+FROM $BASE_CONTAINER
+
+WORKDIR /app
+ENV WORKDIR=/app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# use entrypoint one day
+CMD ["tail", "-f", "/dev/null"]

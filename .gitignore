@@ -1,0 +1,81 @@
+
+###### APP ######
+
+config/config_dev.ini
+
+data/*
+!data/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+sqlite/*
+!sqlite/.gitkeep
+
+docker/Makefile
+docker/requirements.txt
+docker/start-dev.sh
+
+###### DEFAULT ######
+# DotEnv configuration
+.env
+.env-prod
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.py[co]
+*.DS_*
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+
+#Translations
+*.mo
+
+#Mr Developer
+venv
+*.pyc
+build
+
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Database
+*.db
+*.rdb
+
+# Pycharm
+.idea
+
+# VS Code
+.vscode/
+
+# Spyder
+.spyproject/
+
+# Jupyter NB Checkpoints
+.ipynb_checkpoints/
