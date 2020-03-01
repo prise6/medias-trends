@@ -6,7 +6,7 @@ from .PTracker import PTracker
 
 class PTorrent(Model):
 
-    hash = FixedCharField(max_length=40)
+    hash_info = FixedCharField(max_length=40)
     tracker = ForeignKeyField(PTracker)
     title = CharField(max_length=255)
     add_date = DateField()
