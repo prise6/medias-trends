@@ -8,8 +8,8 @@ class PTorrent(Model):
 
     hash_info = FixedCharField(max_length=40)
     tracker = ForeignKeyField(PTracker)
-    title = CharField(max_length=255)
-    add_date = DateField()
+    name = CharField(max_length=255)
+    pub_date = DateTimeField()
 
     class Meta:
         database = db

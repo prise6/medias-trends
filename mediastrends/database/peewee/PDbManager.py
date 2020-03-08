@@ -15,7 +15,7 @@ class PDbManager(DbManager):
     def db_to_torrent(db_torrent: PTorrent):
         torrent = Torrent(
             db_torrent.hash_info,
-            db_torrent.title,
+            db_torrent.name,
             PDbManager.db_to_tracker(db_torrent.tracker)
         )
         return torrent
@@ -50,8 +50,8 @@ class PDbManager(DbManager):
         db_torrent = PTorrent(
             hash_info = torrent.hash_info,
             tracker = db_tracker,
-            title = torrent.title,
-            add_date = torrent.add_date
+            name = torrent.name,
+            pub_date = torrent.pub_date
         )
         return db_torrent
 

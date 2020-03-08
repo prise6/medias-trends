@@ -4,10 +4,10 @@ from .Tracker import Tracker
 
 class Torrent:
     
-    def __init__(self, hash_info: str, title: str, add_date: datetime.date, tracker: Tracker):
+    def __init__(self, hash_info: str, name: str, pub_date: datetime.date, tracker: Tracker):
         self._hash_info = hash_info
-        self._title = title
-        self._add_date = add_date
+        self._name = name
+        self._pub_date = pub_date
         self._tracker = tracker
 
     @property
@@ -15,12 +15,12 @@ class Torrent:
         return self._hash_info
 
     @property
-    def title(self):
-        return self._title
+    def name(self):
+        return self._name
 
     @property
-    def add_date(self):
-        return self._add_date
+    def pub_date(self):
+        return self._pub_date
 
     @property
     def tracker(self):
