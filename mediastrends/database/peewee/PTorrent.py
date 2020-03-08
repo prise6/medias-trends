@@ -6,10 +6,11 @@ from .PTracker import PTracker
 
 class PTorrent(Model):
 
-    hash_info = FixedCharField(max_length=40)
+    hash_info = UUIDField(primary_key=True)
     tracker = ForeignKeyField(PTracker)
     name = CharField(max_length=255)
-    pub_date = DateTimeField()
+    pub_date = DateTimeField(null = True)
+    size = BigIntegerField(null = True)
 
     class Meta:
         database = db

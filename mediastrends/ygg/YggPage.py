@@ -1,30 +1,25 @@
-from bs4 import BeautifulSoup
 import urllib.request
 import urllib.parse
 import requests
+import re
+import datetime
 
 from mediastrends import logger_app, config
 from .YggRSS import YggRSS
+from mediastrends.torrent.Page import Page
+import mediastrends.tools as tools
 
 
-class YggPage():
+class YggPage(Page):
 
-    def __init__(self, html):
-        self._soup = BeautifulSoup(html, 'html.parser')
-        self._url = None
-        self._name = None
-        self._pub_date = None
+    def __init__(self, url, soup = None):
         self._category = None
-        self._seeders = None
-        self._leechers = None
-        self._downloaded = None
-        self._size = None
-        self._hash_info = None
+        super().__init__(url, soup)
 
     @property
     def hash_info(self):
         if not self._hash_info:
-            self._hash_info = self._soup.select_one('#informationsContainer .informations tr:nth-of-type(5) td:last-child').get_text()
+            self._hash_info = self.soup.select_one('#informationsContainer .informations tr:nth-of-type(5) td:last-child').get_text()
         return self._hash_info
 
     @hash_info.setter
@@ -35,7 +30,10 @@ class YggPage():
     @property
     def pub_date(self):
         if not self._pub_date:
-            self._pub_date = self._soup.select_one('#informationsContainer .w tr:nth-of-type(7) td:last-child').get_text()
+            pub_date_text = self.soup.select_one('#informationsContainer tr:nth-of-type(7) td:last-child').get_text()
+            match = re.search('(\d+/\d+/\d+ \d+:\d+)', pub_date_text)
+            pub_date = datetime.datetime.strptime(match.group(1), "%d/%m/%Y %H:%M")
+            self._pub_date = pub_date
         return self._pub_date
 
     @pub_date.setter
@@ -46,46 +44,61 @@ class YggPage():
     @property
     def name(self):
         if not self._name:
-            self._name = self._soup.select_one('#informationsContainer .w tr:nth-of-type(1) td:last-child').get_text()
+            self._name = self.soup.select_one('#informationsContainer tr:nth-of-type(1) td:last-child').get_text()
         return self._name
 
     @name.setter
     def name(self, name):
         self._name = name
         return self
+    
+    @name.setter
+    def name(self, name):
+        self._name = name
+        return self
+
+    @property
+    def size(self):
+        if not self._size:
+            size_str = self.soup.select_one('#informationsContainer tr:nth-of-type(4) td:last-child').get_text()
+            self._size = tools.parse_size(size_str)
+        return self._size
+
+    @size.setter
+    def size(self, size):
+        self._size = size
+        return self
+
+    @property
+    def seeders(self):
+        if not self._seeders:
+            self._seeders = int(self.soup.select_one('#adv_search_cat td:nth-of-type(2)').get_text())
+        return self._seeders
+
+    @property
+    def leechers(self):
+        if not self._leechers:
+            self._leechers = int(self.soup.select_one('#adv_search_cat td:nth-of-type(4)').get_text())
+        return self._leechers
+
+    @property
+    def completed(self):
+        if not self._completed:
+            self._completed = int(self.soup.select_one('#adv_search_cat td:nth-of-type(6)').get_text())
+        return self._completed
+
 
 #
 # use python way to create "classmethod"
 #
 
-def yggpage_from_link(link: str, headers = {}):
-    """
-    Return YggPage object from link
-    """
 
-    if 'user-agent' not in headers.keys():
-        headers['user-agent'] = config.get('requests', 'user_agent')
-
-    url = urllib.parse.urlsplit(link)
-    url = list(url)
-    url[2] = urllib.parse.quote(url[2])
-    url = urllib.parse.urlunsplit(url)
-    logger_app.info("Let's scrap ygg page: %s", url)
-
-    with requests.get(url, headers=headers) as response:
-        logger_app.info('--> status code: %s' % (str(response.status_code)))
-        if not response.status_code == requests.codes.ok:
-            return None
-        return YggPage(response.text)
-
-    return None
-
-def yggpage_from_rss_item(ygg_rss: YggRSS, idx: int, headers = {}):
+def yggpage_from_rss_item(ygg_rss: YggRSS, idx: int):
     """
     Return YggPage object from object YggRSS specifying index item
     """
     item = ygg_rss.items[idx]
-    ygg_page = yggpage_from_link(item['link'], headers)
+    ygg_page = YggPage(item['link'])
     ygg_page.pub_date = item['pub_date']
     ygg_page.name = item['name']
     

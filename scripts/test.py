@@ -27,7 +27,8 @@ ygg_torrent = Torrent(
     hash_info = "116d3df019e7fcee7dd107fbdb70654af4256de5",
     tracker = ygg_tracker,
     name = "Charlies.Angels.2019.REPACK.MULTi.1080p.HDLight.x264.AC3-EXTREME",
-    pub_date = datetime.date.today()
+    pub_date = datetime.date.today(),
+    size = 6090000000
 )
 
 PDbManager.save_torrent(ygg_torrent)
