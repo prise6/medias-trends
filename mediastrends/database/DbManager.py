@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod, abstractstaticmethod
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
+from mediastrends.stats.Stats import Stats
 
 
 class DbManager(ABC):
@@ -30,15 +31,15 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def page_to_db(page: Page, torrent: Torrent):
+    def save_page(page: Page, torrent: Torrent, tracker: Tracker):
         return
 
     @abstractstaticmethod
-    def save_torrent(torrent: Torrent):
+    def save_torrent_tracker(torrent: Torrent, tracker: Tracker):
         return
 
     @abstractstaticmethod
-    def save_page(page: Page, torrent: Torrent):
+    def save_stats(stats: Stats, torrent: Torrent, tracker: Tracker):
         return
 
     @abstractstaticmethod

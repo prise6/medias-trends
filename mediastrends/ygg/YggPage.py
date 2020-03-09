@@ -93,13 +93,14 @@ class YggPage(Page):
 #
 
 
-def yggpage_from_rss_item(ygg_rss: YggRSS, idx: int):
+def yggpage_from_rss_item(ygg_rss: YggRSS, idx: int, populate=True):
     """
     Return YggPage object from object YggRSS specifying index item
     """
     item = ygg_rss.items[idx]
     ygg_page = YggPage(item['link'])
-    ygg_page.pub_date = item['pub_date']
-    ygg_page.name = item['name']
+    if populate:
+        ygg_page.pub_date = item['pub_date']
+        ygg_page.name = item['name']
     
     return ygg_page

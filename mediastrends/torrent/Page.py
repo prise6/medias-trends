@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
+import datetime
 
 from mediastrends import logger_app, config
 import mediastrends.tools as tools
@@ -19,6 +20,7 @@ class Page(ABC):
         self._completed = None
         self._size = None
         self._hash_info = None
+        self.scrape_date = None
 
     @property
     def url(self):
@@ -34,6 +36,7 @@ class Page(ABC):
         if not self._soup:
             logger_app.info("Let's scrap page: %s", self._url)
             self.soup = tools.parsed_html_content(self._url, headers = self._HEADERS)
+            self.scrape_date = datetime.datetime.now()
         return self._soup
 
     @soup.setter

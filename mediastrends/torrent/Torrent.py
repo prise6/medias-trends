@@ -1,15 +1,12 @@
 import datetime
-from .Tracker import Tracker
-
 
 class Torrent:
     
-    def __init__(self, hash_info: str, name: str, pub_date: datetime.date, size: int, tracker: Tracker):
+    def __init__(self, hash_info: str, name: str, pub_date: datetime.date, size: int):
         self._hash_info = hash_info
         self._name = name
         self._pub_date = pub_date
         self._size = size
-        self._tracker = tracker
 
     @property
     def hash_info(self):
@@ -27,6 +24,3 @@ class Torrent:
     def size(self):
         return self._size
         
-    @property
-    def tracker(self):
-        return self._tracker

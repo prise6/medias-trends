@@ -13,6 +13,10 @@ loggers:
     level: DEBUG
     handlers: [console]
     propagate: no
+  urllib3.connectionpool:
+    level: INFO
+    handlers: [console]
+    propage: no
 root:
   level: DEBUG
   handlers: [console]
