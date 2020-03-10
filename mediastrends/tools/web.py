@@ -2,17 +2,23 @@ import requests
 from bs4 import BeautifulSoup
 import urllib.request
 import urllib.parse
+import torrent_parser as tp
 
 from mediastrends import logger_app, config
 
 
-
-def html_content(url: str, headers):
+def get_request_(url: str, headers):
     with requests.get(url, headers=headers) as response:
         logger_app.info('--> status code: %s' % (str(response.status_code)))
         if not response.status_code == requests.codes.ok:
             return None
-    return response.text
+    return response
+
+def get_request_text(url: str, headers):
+    return get_request_(url, headers).text
+    
+def get_request_content(url:str, headers):
+    return get_request_(url, headers).content
 
 def quote_url(url: str):
     url = urllib.parse.urlsplit(url)
@@ -24,7 +30,7 @@ def quote_url(url: str):
 
 
 def parsed_html_content(url, headers):
-    html = html_content(url, headers)
+    html = get_request_text(url, headers)
     soup = BeautifulSoup(html, 'html.parser')
 
     return soup
@@ -54,3 +60,23 @@ def parse_size(size_str: str):
 
     return int(float(number) * units[unit])
 
+def batch(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
+
+
+def parse_bencode_tracker(endpoint:str, content: str):
+    if endpoint not in ['announce', 'scrape']:
+        raise ValueError("Endpoint %s not in default" % (endpoint))
+
+    res = None
+
+    if endpoint == 'announce':
+        res = tp.decode(content, hash_fields={'peers': (6, False)})
+    elif endpoint == 'scrape':
+        tmp = tp.decode(content, encoding = 'latin1')
+        res = {}
+        for info_hash, infos in tmp['files'].items():
+            res[info_hash.encode('latin1').hex()] = infos
+    return res

@@ -1,4 +1,4 @@
-
+import urllib.parse
 
 class Tracker:
 
@@ -23,3 +23,9 @@ class Tracker:
     @property
     def name(self):
         return self._name
+
+    @property
+    def url(self):
+        return urllib.parse.urlunsplit(
+            urllib.parse.SplitResult(self._scheme, self._netloc, self._path, None, None)
+        )

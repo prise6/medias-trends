@@ -23,7 +23,7 @@ class PDbManager(DbManager):
     
     def db_to_torrent(db_torrent: PTorrent):
         torrent = Torrent(
-            db_torrent.hash_info,
+            db_torrent.info_hash,
             db_torrent.name,
             db_torrent.pub_date,
             db_torrent.size
@@ -61,7 +61,7 @@ class PDbManager(DbManager):
 
     def torrent_to_db(torrent: Torrent):        
         db_torrent, created = PTorrent.get_or_create(
-            hash_info = torrent.hash_info,
+            info_hash = torrent.info_hash,
             defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size}
         )
         if created:
@@ -122,9 +122,9 @@ class PDbManager(DbManager):
     ## GET DB BY ...
     ##
 
-    def get_torrent_by_hash(hash_info: str):
+    def get_torrent_by_hash(info_hash: str):
         try:
-            return PDbManager.db_to_torrent(PTorrent.get_or_none(hash_info = hash_info))
+            return PDbManager.db_to_torrent(PTorrent.get_or_none(info_hash = info_hash))
         except peewee.DoesNotExist:
             return None
 

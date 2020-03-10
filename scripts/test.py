@@ -13,7 +13,7 @@ pdb_manager = PDbManager(config, db)
 
 
 ygg_torrent = Torrent(
-    hash_info = "116d3df019e7fcee7dd107fbdb70654af4256de5",
+    info_hash = "116d3df019e7fcee7dd107fbdb70654af4256de5",
     name = "Charlies.Angels.2019.REPACK.MULTi.1080p.HDLight.x264.AC3-EXTREME",
     pub_date = datetime.date.today(),
     size = 6090000000

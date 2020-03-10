@@ -6,7 +6,7 @@ from .PTracker import PTracker
 
 class PTorrent(Model):
 
-    hash_info = CharField(max_length=40, unique=True)
+    info_hash = CharField(max_length=40, unique=True)
     name = CharField(max_length=255)
     pub_date = DateTimeField(null = True)
     size = BigIntegerField(null = True)

@@ -2,15 +2,15 @@ import datetime
 
 class Torrent:
     
-    def __init__(self, hash_info: str, name: str, pub_date: datetime.date, size: int):
-        self._hash_info = hash_info
+    def __init__(self, info_hash: str, name: str, pub_date: datetime.date, size: int):
+        self._info_hash = info_hash
         self._name = name
         self._pub_date = pub_date
         self._size = size
 
     @property
-    def hash_info(self):
-        return self._hash_info
+    def info_hash(self):
+        return self._info_hash
 
     @property
     def name(self):

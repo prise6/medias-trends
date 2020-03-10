@@ -43,7 +43,7 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def get_torrent_by_hash(hash_info: str):
+    def get_torrent_by_hash(info_hash: str):
         return
 
     @abstractstaticmethod

@@ -17,14 +17,14 @@ class YggPage(Page):
         super().__init__(url, soup)
 
     @property
-    def hash_info(self):
-        if not self._hash_info:
-            self._hash_info = self.soup.select_one('#informationsContainer .informations tr:nth-of-type(5) td:last-child').get_text()
-        return self._hash_info
+    def info_hash(self):
+        if not self._info_hash:
+            self._info_hash = self.soup.select_one('#informationsContainer .informations tr:nth-of-type(5) td:last-child').get_text()
+        return self._info_hash
 
-    @hash_info.setter
-    def hash_info(self, hash_info):
-        self._hash_info = hash_info
+    @info_hash.setter
+    def info_hash(self, info_hash):
+        self._info_hash = info_hash
         return self
 
     @property

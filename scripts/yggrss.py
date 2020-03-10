@@ -9,9 +9,31 @@ import mediastrends.tools as tools
 import mediastrends.ygg as ygg
 
 
+
 # rss_file = os.path.join(config.get('directory', 'data'), 'rss_ygg.xml')
 # ygg_rss = ygg.rss_from_feedparser(rss_file)
 
+ygg_rss = ygg.rss_from_feedparser(config.get('rss', 'ygg_movies'))
+_N_ITEMS = len(ygg_rss.items)
+torrents = []
+for idx, item in enumerate(ygg_rss.items):
+    logger_app.info("---> RSS item %s/%s ... " % (idx+1, _N_ITEMS))
+    ygg_page = ygg.page_from_rss_item(ygg_rss, idx, True)
+    ygg_torrent = ygg.torrent_from_page(ygg_page)
+    torrents.append(ygg_torrent)
+
+    db_page = PDbManager.save_page(ygg_page, ygg_torrent, ygg.tracker)
+    
+stats_scraper = stats.StatsScraper(ygg.tracker)
+stats_scraper.torrents = torrents
+stats_scraper.run()
+
+stats_collection = stats_scraper.stats_collection
+for ygg_stats in stats_collection:
+    db_stats = PDbManager.save_stats(ygg_stats)
+
+
+exit()
 ygg_rss = ygg.rss_from_feedparser(config.get('rss', 'ygg_movies'))
 _N_ITEMS = len(ygg_rss.items)
 for idx, item in enumerate(ygg_rss.items):

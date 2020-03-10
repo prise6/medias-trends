@@ -19,7 +19,7 @@ class Page(ABC):
         self._leechers = None
         self._completed = None
         self._size = None
-        self._hash_info = None
+        self._info_hash = None
         self.scrape_date = None
 
     @property
@@ -46,7 +46,7 @@ class Page(ABC):
 
     @property
     @abstractmethod
-    def hash_info(self):
+    def info_hash(self):
         return
 
     @property
