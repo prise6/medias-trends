@@ -1,4 +1,5 @@
 import feedparser
+import re
 from datetime import datetime
 from time import mktime
 
@@ -32,14 +33,19 @@ def yggrss_from_feedparser(argument: str):
     Use feedparser to instanciate YggRSS class
     """
     d = feedparser.parse(argument)
-    items = [
-        {
+    items = []
+    for item in d['entries']:
+        name = item['title']
+        match = re.search("(.*)\(S:\d+/L:\d+\)$", name)
+        try:
+            name = match.group(1).strip()
+        except IndexError:
+            pass
+        items.append({
             'link': item['link'],
-            'name': item['title'],
+            'name': name,
             'pub_date': datetime.fromtimestamp(mktime(item['published_parsed']))
-        }
-        for item in d['entries']
-    ]
+        })
 
     return YggRSS(items)
 

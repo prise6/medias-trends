@@ -44,7 +44,7 @@ class YggPage(Page):
     @property
     def name(self):
         if not self._name:
-            self._name = self.soup.select_one('#informationsContainer tr:nth-of-type(1) td:last-child').get_text()
+            full_name = self.soup.select_one('#informationsContainer tr:nth-of-type(1) td:last-child').get_text()
         return self._name
 
     @name.setter

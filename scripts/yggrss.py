@@ -26,7 +26,7 @@ for idx, item in enumerate(ygg_rss.items):
     
 stats_scraper = stats.StatsScraper(ygg.tracker)
 stats_scraper.torrents = torrents
-stats_scraper.run()
+stats_scraper.run_by_batch()
 
 stats_collection = stats_scraper.stats_collection
 for ygg_stats in stats_collection:

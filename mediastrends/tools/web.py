@@ -12,6 +12,8 @@ def get_request_(url: str, headers):
         logger_app.info('--> status code: %s' % (str(response.status_code)))
         if not response.status_code == requests.codes.ok:
             return None
+        else:
+            response.raise_for_status()
     return response
 
 def get_request_text(url: str, headers):

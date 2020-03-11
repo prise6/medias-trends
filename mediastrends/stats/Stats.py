@@ -6,13 +6,14 @@ from mediastrends.torrent.Page import Page
 
 class Stats():
 
-    def __init__(self, torrent: Torrent, tracker: Tracker, valid_date: datetime.datetime, leechers: int = None, seeders: int = None, completed: int = None):
+    def __init__(self, torrent: Torrent, tracker: Tracker, valid_date: datetime.datetime = datetime.datetime.now(), leechers: int = None, seeders: int = None, completed: int = None):
         self._leechers = leechers
         self._seeders = seeders
         self._completed = completed
-        self._valid_date = valid_date
         self._tracker = tracker
         self._torrent = torrent
+    
+        self.valid_date = valid_date
 
     @property
     def leechers(self):
@@ -47,7 +48,10 @@ class Stats():
 
     @valid_date.setter
     def valid_date(self, valid_date: datetime.datetime):
-        self._valid_date = valid_date
+        if not isinstance(valid_date, datetime.datetime):
+            raise ValueError("valid_date (%s) should be datetime object", valid_date)
+
+        self._valid_date = valid_date.strftime("%Y-%m-%d %H:%M:%S")
         return self
 
     @property
@@ -80,5 +84,5 @@ def stats_from_page(page: Page, torrent: Torrent, tracker: Tracker):
         leechers = page.leechers,
         seeders = page.seeders,
         completed = page.completed,
-        valid_date = page.scrape_date
+        valid_date = page.valid_date
     )

@@ -2,6 +2,8 @@ import urllib.parse
 import random
 import datetime
 import time
+from retry import retry
+import requests
 
 from mediastrends import logger_app, config
 import mediastrends.tools as tools
@@ -14,6 +16,8 @@ class StatsScraper():
     _HEADERS = {}
     _HEADERS['user-agent'] = config.get('requests', 'user_agent')
     _BATCH_SIZE = config.getint('requests', 'batch_size')
+    _RETRIES = config.getint('retry', 'tries')
+    _DELAY = config.getint('retry', 'delay')
     
     def __init__(self, tracker: Tracker):
         self._tracker = tracker
@@ -46,8 +50,7 @@ class StatsScraper():
             tracker = self._tracker,
             seeders = c.get('complete'),
             leechers = c.get('incomplete'),
-            completed = c.get('downloaded'),
-            valid_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            completed = c.get('downloaded')
         ) for info_hash, c in self._parsed_content.items()]
     
     def extract_info_hashes(self):
@@ -61,18 +64,24 @@ class StatsScraper():
 
         return url
 
-    def run(self):
+    @retry(requests.exceptions.RequestException, tries=_RETRIES, delay=_DELAY, jitter=(3, 10))
+    def run(self, info_hashes: list):
+        logger_app.info('---> Building scrape url ...')
+        url = self.url(info_hashes)
+        print(len(url))
+        logger_app.info('---> Contacting Tracker ...')
+        content = tools.get_request_content(url, self._HEADERS)
+        self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
+        logger_app.info('---> Done.')
 
+
+    def run_by_batch(self):
         for info_hashes in tools.batch(self._info_hashes, self._BATCH_SIZE):
-            logger_app.info('---> Building scrape url ...')
-            url = self.url(info_hashes)
-            print(len(url))
-            logger_app.info('---> Contacting Tracker ...')
-            content = tools.get_request_content(url, self._HEADERS)
-            self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
-            logger_app.info('---> Done.')
-
-            time.sleep(5)
-
+            try:
+                self.run(info_hashes)
+            except requests.exceptions.RequestException as err:
+                logger_app.warning(err)
+                continue
+    
 
 

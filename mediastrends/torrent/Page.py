@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
 import datetime
+from retry.api import retry_call
 
 from mediastrends import logger_app, config
 import mediastrends.tools as tools
@@ -9,6 +10,8 @@ class Page(ABC):
 
     _HEADERS = {}
     _HEADERS['user-agent'] = config.get('requests', 'user_agent')
+    _RETRIES = config.getint('retry', 'tries')
+    _DELAY = config.getint('retry', 'delay')
 
     def __init__(self, url, soup = None):
         self.url = url
@@ -20,7 +23,7 @@ class Page(ABC):
         self._completed = None
         self._size = None
         self._info_hash = None
-        self.scrape_date = None
+        self._valid_date = None
 
     @property
     def url(self):
@@ -32,16 +35,29 @@ class Page(ABC):
         return self
 
     @property
+    def valid_date(self, valid_date):
+        return self.valid_date
+
+    @url.setter
+    def valid_date(self, valid_date: datetime.datetime):
+        if not isinstance(valid_date, datetime.datetime):
+            raise ValueError("valid_date (%s) should be datetime object", valid_date)
+
+        self._valid_date = valid_date.strftime("%Y-%m-%d %H:%M:%S")
+        return self
+
+    @property
     def soup(self):
         if not self._soup:
             logger_app.info("Let's scrap page: %s", self._url)
-            self.soup = tools.parsed_html_content(self._url, headers = self._HEADERS)
-            self.scrape_date = datetime.datetime.now()
+            # self.soup = tools.parsed_html_content(self._url, headers = self._HEADERS)
+            self.soup = retry_call(tools.parsed_html_content, fkwargs={"url": self._url, "headers": self._HEADERS}, tries=self._RETRIES, delay=self._DELAY, jitter=(3, 10))
         return self._soup
 
     @soup.setter
     def soup(self, soup):
         self._soup = soup
+        self.valid_date = datetime.datetime.now()
         return self
 
     @property
