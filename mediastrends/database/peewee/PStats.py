@@ -7,7 +7,7 @@ from .PTracker import PTracker
 
 class PStats(Model):
 
-    torrent = ForeignKeyField(PTorrent)
+    torrent = ForeignKeyField(PTorrent, backref = 'stats')
     tracker = ForeignKeyField(PTracker)
     leechers = IntegerField()
     seeders = IntegerField()

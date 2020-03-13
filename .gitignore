@@ -1,6 +1,9 @@
 
 ###### APP ######
 
+notes.txt
+scripts/draft.py
+
 config/config_dev.ini
 
 data/*

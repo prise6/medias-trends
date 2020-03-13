@@ -51,7 +51,7 @@ class Stats():
         if not isinstance(valid_date, datetime.datetime):
             raise ValueError("valid_date (%s) should be datetime object", valid_date)
 
-        self._valid_date = valid_date.strftime("%Y-%m-%d %H:%M:%S")
+        self._valid_date = valid_date.replace(microsecond=0)
         return self
 
     @property
@@ -71,6 +71,24 @@ class Stats():
     def tracker(self, tracker: Tracker):
         self._tracker = tracker
         return self
+
+    def to_dict(self):
+        return {
+            'torrent_id': self._torrent.info_hash,
+            'tracker_name': self._tracker.name,
+            'leechers': self._leechers,
+            'seeders': self._seeders,
+            'completed': self._completed,
+            'valid_date': self._valid_date
+        }
+
+    def __str__(self):
+        return "(%s) L:%s S:%s C:%s" % (
+            self._valid_date,
+            self._leechers,
+            self._seeders,
+            self._completed
+        )
 
 
 #

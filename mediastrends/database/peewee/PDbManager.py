@@ -4,6 +4,7 @@ from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
 from mediastrends.stats.Stats import Stats
+from mediastrends.stats.StatsCollection import StatsCollection
 from ..DbManager import DbManager
 from .PTorrent import PTorrent, PTorrentTracker
 from .PTracker import PTracker
@@ -39,17 +40,30 @@ class PDbManager(DbManager):
         )
         return tracker
 
-    def db_to_page(db_page):
+    def db_to_page(db_page: PPage):
         page = Page(
             url = db_page.url
         )
         return page
+
+    def db_to_stats(db_stats: PStats):
+        stats = Stats(
+            leechers = db_stats.leechers,
+            seeders = db_stats.seeders,
+            completed = db_stats.completed,
+            tracker = PDbManager.db_to_tracker(db_stats.tracker),
+            torrent = PDbManager.db_to_torrent(db_stats.torrent),
+            valid_date = db_stats.valid_date
+        )
+        return stats
 
     ##
     ## TO DB (meaning get_or_create)
     ##
 
     def tracker_to_db(tracker: Tracker):
+        if not isinstance(tracker, Tracker):
+            raise ValueError("Tracker must be Tracker instance")
         db_tracker, created = PTracker.get_or_create(
             name = tracker.name,
             defaults = {'scheme': tracker.scheme, 'netloc': tracker.netloc, 'path': tracker.path}
@@ -59,7 +73,9 @@ class PDbManager(DbManager):
 
         return db_tracker
 
-    def torrent_to_db(torrent: Torrent):        
+    def torrent_to_db(torrent: Torrent):
+        if not isinstance(torrent, Torrent):
+            raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
             info_hash = torrent.info_hash,
             defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size}
@@ -123,10 +139,14 @@ class PDbManager(DbManager):
     ##
 
     def get_torrent_by_hash(info_hash: str):
-        try:
-            return PDbManager.db_to_torrent(PTorrent.get_or_none(info_hash = info_hash))
-        except peewee.DoesNotExist:
-            return None
+        return PDbManager.db_to_torrent(PTorrent.get(info_hash = info_hash))
 
     def get_tracker_by_name(name: str):
-        return PDbManager.db_to_tracker(PTracker.get_or_none(name = name))
+        return PDbManager.db_to_tracker(PTracker.get(name = name))
+
+    def get_stats_collection(torrent: Torrent):
+        
+        db_torrent = PDbManager.torrent_to_db(torrent)
+        stats_list = [PDbManager.db_to_stats(s) for s in db_torrent.stats]
+
+        return StatsCollection(torrent, stats_list)

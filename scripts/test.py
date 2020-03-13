@@ -1,7 +1,9 @@
 import datetime
+import pytz
+import re
 import mediastrends
 import mediastrends.ygg as ygg
-from mediastrends import config, db
+from mediastrends import config, db, logger_app
 from mediastrends.database.peewee.PTorrent import PTorrent 
 from mediastrends.database.peewee.PTracker import PTracker
 from mediastrends.database.peewee.PDbManager import PDbManager
@@ -9,18 +11,18 @@ from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 
 
-pdb_manager = PDbManager(config, db)
+# torrent = PDbManager.get_torrent_by_hash("2fef114edc5f41e7310c8c4b89044d8e90759bba")
+# torrent = PDbManager.get_torrent_by_hash("d0e2970cc29d79ae8338e25b7f0da4773d6e711b")
+try:
+    for db_torrent in PTorrent.select():
+        torrent = PDbManager.db_to_torrent(db_torrent)
+        stats_collection = PDbManager.get_stats_collection(torrent)
+        
+        if stats_collection.is_trending():
+            print(torrent)
+            print(stats_collection)
+            # print(stats_collection.dataframe)
+        
+except Exception as err:
+    logger_app.error(err)
 
-
-ygg_torrent = Torrent(
-    info_hash = "116d3df019e7fcee7dd107fbdb70654af4256de5",
-    name = "Charlies.Angels.2019.REPACK.MULTi.1080p.HDLight.x264.AC3-EXTREME",
-    pub_date = datetime.date.today(),
-    size = 6090000000
-)
-
-tmp = PDbManager.save_torrent_tracker(ygg_torrent, ygg.tracker)
-
-print(type(tmp))
-
-db.close()

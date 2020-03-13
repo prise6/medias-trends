@@ -49,3 +49,7 @@ class DbManager(ABC):
     @abstractstaticmethod
     def get_tracker_by_name(name: str):
         return
+
+    @abstractstaticmethod
+    def get_stats_collection(torrent: Torrent):
+        return

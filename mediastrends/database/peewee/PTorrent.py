@@ -6,10 +6,13 @@ from .PTracker import PTracker
 
 class PTorrent(Model):
 
+    STATUS = [(0, 'unfollow'), (1, 'new'), (2, 'follow')]
+
     info_hash = CharField(max_length=40, unique=True)
     name = CharField(max_length=255)
     pub_date = DateTimeField(null = True)
     size = BigIntegerField(null = True)
+    status = IntegerField(null = False, default=0, choices=STATUS)
 
     class Meta:
         database = db

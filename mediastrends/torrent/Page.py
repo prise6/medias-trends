@@ -43,7 +43,7 @@ class Page(ABC):
         if not isinstance(valid_date, datetime.datetime):
             raise ValueError("valid_date (%s) should be datetime object", valid_date)
 
-        self._valid_date = valid_date.strftime("%Y-%m-%d %H:%M:%S")
+        self._valid_date = valid_date.replace(microsecond=0)
         return self
 
     @property
