@@ -68,7 +68,6 @@ class StatsScraper():
     def run(self, info_hashes: list):
         logger_app.info('---> Building scrape url ...')
         url = self.url(info_hashes)
-        print(len(url))
         logger_app.info('---> Contacting Tracker ...')
         content = tools.get_request_content(url, self._HEADERS)
         self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))

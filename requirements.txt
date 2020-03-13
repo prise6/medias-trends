@@ -7,4 +7,5 @@ PyYAML==5.3
 peewee==3.13.1
 retry==0.9.2
 pytz
-pandas=1.0.1
+pandas==1.0.1
+parse-torrent-name==1.1.1

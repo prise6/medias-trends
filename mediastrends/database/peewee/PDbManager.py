@@ -85,6 +85,20 @@ class PDbManager(DbManager):
 
         return db_torrent
 
+    ##
+    ## updates
+    ##
+
+    def update(obj):
+        class_name = obj.__class__.__name__.lower()
+        method_to_call = "%s_to_db" % (class_name)
+        try:
+            method = getattr(PDbManager, method_to_call)
+        except AttributeError as err:
+            raise ValueError("Method %s doesn't exist" % method_to_call)
+
+        return method(obj).save()
+
 
     ##
     ## Special save
@@ -150,3 +164,13 @@ class PDbManager(DbManager):
         stats_list = [PDbManager.db_to_stats(s) for s in db_torrent.stats]
 
         return StatsCollection(torrent, stats_list)
+    
+    def get_torrents_by_status(status: int):
+        
+        result = PTorrent.select().where(PTorrent.status == status)
+        if result.count() == 0:
+            raise ValueError("No torrent with status '%s'" % status)
+        
+        return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
+
+
