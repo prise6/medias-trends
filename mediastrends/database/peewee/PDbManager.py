@@ -70,6 +70,10 @@ class PDbManager(DbManager):
         )
         if created:
             logger_app.info("Tracker has been created")
+        else:
+            db_tracker.scheme = tracker.scheme
+            db_tracker.netloc = tracker.netloc
+            db_tracker.path = tracker.path
 
         return db_tracker
 
@@ -78,10 +82,16 @@ class PDbManager(DbManager):
             raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
             info_hash = torrent.info_hash,
-            defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size}
+            defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status}
         )
         if created:
             logger_app.info("Torrent has been created")
+        else:
+            #force torrent values
+            db_torrent.name = torrent.name
+            db_torrent.pub_date = torrent.pub_date
+            db_torrent.size = torrent.size
+            db_torrent.status = torrent.status
 
         return db_torrent
 
@@ -94,10 +104,11 @@ class PDbManager(DbManager):
         method_to_call = "%s_to_db" % (class_name)
         try:
             method = getattr(PDbManager, method_to_call)
+            db_obj = method(obj)
         except AttributeError as err:
             raise ValueError("Method %s doesn't exist" % method_to_call)
-
-        return method(obj).save()
+        
+        return db_obj, db_obj.save()
 
 
     ##
