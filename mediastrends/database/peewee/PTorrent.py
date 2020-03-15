@@ -12,7 +12,7 @@ class PTorrent(Model):
     name = CharField(max_length=255)
     pub_date = DateTimeField(null = True)
     size = BigIntegerField(null = True)
-    status = IntegerField(null = False, default=0, choices=STATUS)
+    status = IntegerField(null = False, default=1, choices=STATUS)
 
     class Meta:
         database = db

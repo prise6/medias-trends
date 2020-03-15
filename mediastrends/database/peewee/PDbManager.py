@@ -3,8 +3,8 @@ from mediastrends import logger_app
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
-from mediastrends.stats.Stats import Stats
-from mediastrends.stats.StatsCollection import StatsCollection
+from mediastrends.stats import Stats
+from mediastrends.stats import StatsCollection
 from ..DbManager import DbManager
 from .PTorrent import PTorrent, PTorrentTracker
 from .PTracker import PTracker
@@ -184,4 +184,7 @@ class PDbManager(DbManager):
         
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
+    def get_torrents_by_tracker(tracker: Tracker, status: list):
+        result = PTorrent.select().join(PTorrentTracker).join(PTracker).where(PTracker.name == tracker.name, PTorrent.status.in_(status))
+        return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 

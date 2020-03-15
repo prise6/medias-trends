@@ -17,6 +17,22 @@ from mediastrends.torrent.Tracker import Tracker
 # torrent = PDbManager.get_torrent_by_hash("d0e2970cc29d79ae8338e25b7f0da4773d6e711b")
 
 try:
+
+    stats_manager = stats.StatsManager(config, PDbManager)
+    # stats_manager.torrents_new
+    stats_manager.compute_torrents_status()
+    # print(stats_manager.torrents_new[0])
+
+    # updated_rows = stats_manager.update_torrents_status()
+    # print(updated_rows)
+
+except Exception as err:
+    print(err)
+    logger_app.error(err)
+
+exit()
+
+try:
     res = PDbManager.get_torrents_by_status(2)
 
     # torrent = PDbManager.torrent_to_db(res[0])

@@ -23,12 +23,20 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
+    def db_to_stats(db_stats):
+        return
+
+    @abstractstaticmethod
     def tracker_to_db(tracker: Tracker):
         return
 
     @abstractstaticmethod
     def torrent_to_db(torrent: Torrent):
         return
+
+    @abstractstaticmethod
+    def update(obj):
+        return    
 
     @abstractstaticmethod
     def save_page(page: Page, torrent: Torrent, tracker: Tracker):
@@ -52,4 +60,12 @@ class DbManager(ABC):
 
     @abstractstaticmethod
     def get_stats_collection(torrent: Torrent):
+        return
+
+    @abstractstaticmethod
+    def get_torrents_by_status(status: int):
+        return
+
+    @abstractstaticmethod
+    def get_torrents_by_tracker(tracker: Tracker, status: list):
         return

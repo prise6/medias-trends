@@ -2,7 +2,7 @@ import datetime
 
 class Torrent:
     
-    def __init__(self, info_hash: str, name: str, pub_date: datetime.date, size: int, status: int = 0):
+    def __init__(self, info_hash: str, name: str, pub_date: datetime.date, size: int, status: int = 1):
         self._info_hash = info_hash
         self._name = name
         self._pub_date = pub_date
