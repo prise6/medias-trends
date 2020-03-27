@@ -9,7 +9,7 @@ def main():
     torrents = stats_manager.get_torrents_by_tracker(ygg.tracker)
 
     for torrent in torrents:
-        stats_collection = PDbManager.get_stats_collection(torrent)
+        stats_collection = stats_manager.get_stats_collection(torrent)
         
         if stats_collection.is_trending():
             print(torrent)

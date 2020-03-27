@@ -7,9 +7,8 @@ from mediastrends.torrent.Page import Page
 
 class StatsCollection():
 
-    def __init__(self, torrent: Torrent, stats: list):
+    def __init__(self, stats: list):
         self._stats = stats
-        self._torrent = torrent
         self._dataframe = None
 
     @property
@@ -17,14 +16,20 @@ class StatsCollection():
         return self._stats
 
     @property
-    def torrent(self):
-        return self._torrent
-
-    @property
     def dataframe(self):
         if not self._dataframe:
             self.create_dataframe()
         return self._dataframe
+
+    def extend(self, stats_collection):
+        if not stats_collection.__class__.__name__ == self.__class__.__name__:
+            raise ValueError("stats_collection argument must be instance of StatsCollection")
+        self._stats.extend(stats_collection.stats)
+        self._dataframe = None
+        return self
+
+    def __add__(self, stats_collection):
+        return self.extend(stats_collection)
 
     def count(self):
         return len(self._stats)

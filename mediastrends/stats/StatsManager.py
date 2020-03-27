@@ -2,6 +2,8 @@ import datetime
 from mediastrends import logger_app
 from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Tracker import Tracker
+from mediastrends.torrent.Torrent import Torrent
+from .StatsCollection import StatsCollection
 
 class StatsManager():
 
@@ -114,6 +116,17 @@ class StatsManager():
         """
 
         return self._dbmanager.get_torrents_by_tracker(tracker, status = status, category = category)
+
+    def get_stats_collection(self, obj):
+        if isinstance(obj, Torrent):
+            stats_collection = self._dbmanager.get_stats_collection(obj)
+        elif isinstance(obj, list):
+            stats_collection = StatsCollection([])
+            for item in obj: 
+                stats_collection += self.get_stats_collection(item)
+        else:
+            raise ValueError("Not implemented yet.")
+        return stats_collection
 
 
 

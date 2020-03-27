@@ -172,11 +172,10 @@ class PDbManager(DbManager):
         return PDbManager.db_to_tracker(PTracker.get(name = name))
 
     def get_stats_collection(torrent: Torrent):
-        
         db_torrent = PDbManager.torrent_to_db(torrent)
         stats_list = [PDbManager.db_to_stats(s) for s in db_torrent.stats]
 
-        return StatsCollection(torrent, stats_list)
+        return StatsCollection(stats_list)
     
     def get_torrents_by_status(status: int):
         
