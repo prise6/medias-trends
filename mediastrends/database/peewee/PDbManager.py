@@ -27,7 +27,8 @@ class PDbManager(DbManager):
             db_torrent.info_hash,
             db_torrent.name,
             db_torrent.pub_date,
-            db_torrent.size
+            db_torrent.size,
+            db_torrent.category,
         )
         return torrent
 
@@ -82,7 +83,7 @@ class PDbManager(DbManager):
             raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
             info_hash = torrent.info_hash,
-            defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status}
+            defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
         )
         if created:
             logger_app.info("Torrent has been created")
@@ -92,6 +93,7 @@ class PDbManager(DbManager):
             db_torrent.pub_date = torrent.pub_date
             db_torrent.size = torrent.size
             db_torrent.status = torrent.status
+            db_torrent.category = torrent.category
 
         return db_torrent
 
@@ -184,7 +186,7 @@ class PDbManager(DbManager):
         
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
-    def get_torrents_by_tracker(tracker: Tracker, status: list):
-        result = PTorrent.select().join(PTorrentTracker).join(PTracker).where(PTracker.name == tracker.name, PTorrent.status.in_(status))
+    def get_torrents_by_tracker(tracker: Tracker, status: list, category: list):
+        result = PTorrent.select().join(PTorrentTracker).join(PTracker).where(PTracker.name == tracker.name, PTorrent.status.in_(status), PTorrent.category.in_(category))
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 

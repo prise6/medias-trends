@@ -108,12 +108,12 @@ class StatsManager():
 
         return nb_rows_updated
 
-    def get_torrents_by_tracker(self, tracker: Tracker, status = [1, 2]):
+    def get_torrents_by_tracker(self, tracker: Tracker, status = [1, 2], category = [0, 1, 2]):
         """
         Return torrents list according to tracker to get stats from
         """
 
-        return self._dbmanager.get_torrents_by_tracker(tracker, status = status)
+        return self._dbmanager.get_torrents_by_tracker(tracker, status = status, category = category)
 
 
 

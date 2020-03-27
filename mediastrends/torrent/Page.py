@@ -94,3 +94,8 @@ class Page(ABC):
     @abstractmethod
     def completed(self):
         return
+
+    @property
+    @abstractmethod
+    def category(self):
+        return
