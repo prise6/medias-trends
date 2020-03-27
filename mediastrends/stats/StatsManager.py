@@ -3,6 +3,8 @@ from mediastrends import logger_app
 from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
+from mediastrends.trends.TrendsManager import TrendsManager
+from mediastrends.trends.TrendsEngine import ClassicTrendsEngine
 from .StatsCollection import StatsCollection
 
 class StatsManager():
@@ -10,6 +12,7 @@ class StatsManager():
     def __init__(self, config, dbmanager: DbManager):
         self.cfg = config
         self._dbmanager = dbmanager
+        self._trends_manager = TrendsManager(config, dbmanager)
         self._torrents_new = []
         self._torrents_follow = []
         self._torrents_unfollow = []
@@ -74,17 +77,20 @@ class StatsManager():
                 torrents_new.append(t)
                 continue
             staging.append(t)
-            
+        
         ## follow -> unfollow
         ### (factoriser un jour)
         candidates = self.torrents_follow + staging
-        for t in candidates:
-            if self._dbmanager.get_stats_collection(t).is_trending():
-                t.follow()
-                torrents_follow.append(t)
-            else:
-                t.unfollow()
-                torrents_unfollow.append(t)
+        candidates_stats = [self.get_stats_collection(t) for t in candidates]
+        self._trends_manager.evaluate(candidates_stats, ClassicTrendsEngine())
+        for sc in self._trends_manager.is_trending:
+            for s in sc.stats:
+                s.torrent.follow()
+                torrents_follow.append(s.torrent)
+        for sc in self._trends_manager.is_not_trending:
+            for s in sc.stats:
+                s.torrent.unfollow()
+                torrents_unfollow.append(s.torrent)
 
         self._torrents_new = torrents_new
         self._torrents_follow = torrents_follow

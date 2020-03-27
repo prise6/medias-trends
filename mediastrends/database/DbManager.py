@@ -63,9 +63,9 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def get_torrents_by_status(status: int):
+    def get_torrents_by_status(status: int, category: list = None):
         return
 
     @abstractstaticmethod
-    def get_torrents_by_tracker(tracker: Tracker, status: list):
+    def get_torrents_by_tracker(tracker: Tracker, status: list, category: list = None):
         return

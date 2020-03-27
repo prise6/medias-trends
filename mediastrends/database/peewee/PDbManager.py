@@ -177,15 +177,38 @@ class PDbManager(DbManager):
 
         return StatsCollection(stats_list)
     
-    def get_torrents_by_status(status: int):
+    def get_torrents_by_status(status: list, category: list = None):
+        result = PTorrent.select()
         
-        result = PTorrent.select().where(PTorrent.status == status)
+        if not isinstance(status, list):
+            status = [status]
+
+        expression = PTorrent.status.in_(status)
+        
+        if category:
+            if not isinstance(category, list):
+                category = [category]
+            expression &= PTorrent.category.in_(category)
+
+        result = result.where(expression)
+
         if result.count() == 0:
             raise ValueError("No torrent with status '%s'" % status)
         
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
-    def get_torrents_by_tracker(tracker: Tracker, status: list, category: list):
-        result = PTorrent.select().join(PTorrentTracker).join(PTracker).where(PTracker.name == tracker.name, PTorrent.status.in_(status), PTorrent.category.in_(category))
+    def get_torrents_by_tracker(tracker: Tracker, status: list = None, category: list = None):
+        result = PTorrent.select().join(PTorrentTracker).join(PTracker)
+        expression = (PTracker.name == tracker.name)
+        if status:
+            if not isinstance(status, list):
+                status = [status]
+            expression &= (PTorrent.status.in_(status))
+        if category:
+            if not isinstance(category, list):
+                category = [category]
+            expression &= (PTorrent.category.in_(category))
+
+        result = result.where(expression)
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 

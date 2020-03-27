@@ -8,6 +8,8 @@ from mediastrends.database.peewee.PStats import PStats
 from mediastrends.database.peewee.PDbManager import PDbManager
 
 
+exit()
+
 db.connect()
 db.drop_tables([PTorrent, PTracker, PPage, PTorrentTracker, PStats], safe=True)
 db.create_tables([PTorrent, PTracker, PPage, PTorrentTracker, PStats])

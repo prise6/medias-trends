@@ -43,28 +43,12 @@ class StatsCollection():
             self._dataframe = pd.DataFrame.from_dict([s.to_dict() for s in self._stats]).set_index('valid_date').sort_values('valid_date')
         return self
 
-    def is_trending(self):
-        """
-        Function more complex to move later
-        """
-        leecher_trend = False
-        completed_trend = False
-        
-        if self.is_empty():
-            return False
-
-        self.create_dataframe()
-
-        leecher_trend = self._dataframe.groupby(pd.Grouper(freq = 'D')).mean().tail(1).leechers.item() > 10
-        completed_trend = self._dataframe.groupby([pd.Grouper(freq = 'D'), pd.Grouper('tracker_name')]).mean().groupby('valid_date').sum().tail(1).completed.item() > 20
-
-        return leecher_trend and completed_trend
-
     def __str__(self):
         if self.is_empty():
             r = "Empty stats set"
         else:
             r = "Count: %s \nLast stats: %s" % (self.count(), self._stats[-1])
+            r += "\nSample torrent: %s" % (self._stats[-1].torrent.name)
 
         return r
 
