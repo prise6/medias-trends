@@ -9,7 +9,9 @@ class StatsCollection():
 
     def __init__(self, stats: list):
         self._stats = stats
-        self._dataframe = None
+        self._dataframe = pd.DataFrame()
+        self._valid_date = None
+        self._score = None
 
     @property
     def stats(self):
@@ -17,9 +19,39 @@ class StatsCollection():
 
     @property
     def dataframe(self):
-        if not self._dataframe:
+        if not self.is_empty():
             self.create_dataframe()
         return self._dataframe
+
+    @dataframe.setter
+    def dataframe(self, dataframe):
+        self._dataframe = dataframe
+        return self
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, score):
+        self._score = score
+        return self
+
+    @property
+    def valid_date(self):
+        if not self._valid_date:
+            self._valid_date = self.dataframe.index.max().to_pydatetime()
+        return self._valid_date
+
+    @property
+    def torrents(self):
+        id_torrents = []
+        torrents = []
+        for s in self._stats:
+            if id(s.torrent) not in id_torrents:
+                torrents.append(s.torrent)
+                id_torrents.append(id(s.torrent))
+        return torrents
 
     def extend(self, stats_collection):
         if not stats_collection.__class__.__name__ == self.__class__.__name__:
@@ -38,7 +70,6 @@ class StatsCollection():
         return self.count() == 0
 
     def create_dataframe(self):
-        self._dataframe = pd.DataFrame()
         if not self.is_empty():
             self._dataframe = pd.DataFrame.from_dict([s.to_dict() for s in self._stats]).set_index('valid_date').sort_values('valid_date')
         return self

@@ -10,6 +10,7 @@ from .PTorrent import PTorrent, PTorrentTracker
 from .PTracker import PTracker
 from .PPage import PPage
 from .PStats import PStats
+from .PTrends import PTrends
 
 
 class PDbManager(DbManager):
@@ -47,13 +48,13 @@ class PDbManager(DbManager):
         )
         return page
 
-    def db_to_stats(db_stats: PStats):
+    def db_to_stats(db_stats: PStats, torrent: Torrent = None, tracker: Tracker = None):
         stats = Stats(
             leechers = db_stats.leechers,
             seeders = db_stats.seeders,
             completed = db_stats.completed,
-            tracker = PDbManager.db_to_tracker(db_stats.tracker),
-            torrent = PDbManager.db_to_torrent(db_stats.torrent),
+            tracker = tracker if tracker else PDbManager.db_to_tracker(db_stats.tracker),
+            torrent = torrent if torrent else PDbManager.db_to_torrent(db_stats.torrent),
             valid_date = db_stats.valid_date
         )
         return stats
@@ -161,6 +162,16 @@ class PDbManager(DbManager):
 
         return db_stats
 
+    def save_stats_collection_as_trends(stats_collection: StatsCollection):
+        for torrent in stats_collection.torrents:
+            db_torrent = PDbManager.torrent_to_db(torrent)
+            PTrends.create(
+                torrent = db_torrent,
+                valid_date = stats_collection.valid_date,
+                score = float(stats_collection.score)
+            )
+
+
     ##
     ## GET DB BY ...
     ##
@@ -171,9 +182,9 @@ class PDbManager(DbManager):
     def get_tracker_by_name(name: str):
         return PDbManager.db_to_tracker(PTracker.get(name = name))
 
-    def get_stats_collection(torrent: Torrent):
+    def get_stats_collection_by_torrent(torrent: Torrent):
         db_torrent = PDbManager.torrent_to_db(torrent)
-        stats_list = [PDbManager.db_to_stats(s) for s in db_torrent.stats]
+        stats_list = [PDbManager.db_to_stats(s, torrent) for s in db_torrent.stats]
 
         return StatsCollection(stats_list)
     

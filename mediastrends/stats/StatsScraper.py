@@ -9,6 +9,7 @@ from mediastrends import logger_app, config
 import mediastrends.tools as tools
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.stats.Stats import Stats
+from mediastrends.stats.StatsCollection import StatsCollection
 
 
 class StatsScraper():
@@ -45,13 +46,13 @@ class StatsScraper():
 
     @property
     def stats_collection(self):
-        return [Stats(
+        return StatsCollection([Stats(
             torrent = self._torrents_lookup[info_hash],
             tracker = self._tracker,
             seeders = c.get('complete'),
             leechers = c.get('incomplete'),
             completed = c.get('downloaded')
-        ) for info_hash, c in self._parsed_content.items()]
+        ) for info_hash, c in self._parsed_content.items()])
     
     def extract_info_hashes(self):
         return [('info_hash', bytes.fromhex(info_hash)) for info_hash in self._torrents_lookup.keys()]
@@ -70,6 +71,7 @@ class StatsScraper():
         url = self.url(info_hashes)
         logger_app.info('---> Contacting Tracker ...')
         content = tools.get_request_content(url, self._HEADERS)
+        logger_app.info('---> Parse content ...')
         self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
         logger_app.info('---> Done.')
 

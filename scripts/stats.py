@@ -5,18 +5,18 @@ import mediastrends.ygg as ygg
 
 
 def main():
-    ## update status
-    stats_manager = stats.StatsManager(config, PDbManager)
-    stats_manager.update_torrents_status()
-    
+   
     ## tracker ygg
-    torrents = stats_manager.get_torrents_by_tracker(ygg.tracker)
+    torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [1, 2], category = [2])
+    logger_app.info("Torrents number: %s", len(torrents))
     stats_scraper = stats.StatsScraper(ygg.tracker)
     stats_scraper.torrents = torrents
     stats_scraper.run_by_batch()
 
     stats_collection = stats_scraper.stats_collection
-    for ygg_stats in stats_collection:
+    logger_app.info("Stats number: %s", stats_collection.count())
+
+    for ygg_stats in stats_collection.stats:
         db_stats = PDbManager.save_stats(ygg_stats)
 
 if __name__ == '__main__':

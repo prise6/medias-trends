@@ -3,6 +3,7 @@ from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
 from mediastrends.stats.Stats import Stats
+from mediastrends.stats.StatsCollection import StatsCollection
 
 
 class DbManager(ABC):
@@ -59,7 +60,7 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def get_stats_collection(torrent: Torrent):
+    def get_stats_collection_by_torrent(torrent: Torrent):
         return
 
     @abstractstaticmethod
@@ -68,4 +69,20 @@ class DbManager(ABC):
 
     @abstractstaticmethod
     def get_torrents_by_tracker(tracker: Tracker, status: list, category: list = None):
+        return
+
+    @classmethod
+    def get_stats_collection(cls, obj):
+        if isinstance(obj, Torrent):
+            stats_collection = cls.get_stats_collection_by_torrent(obj)
+        elif isinstance(obj, list):
+            stats_collection = StatsCollection([])
+            for item in obj: 
+                stats_collection += cls.get_stats_collection(item)
+        else:
+            raise ValueError("Not implemented yet.")
+        return stats_collection
+
+    @abstractstaticmethod
+    def save_stats_collection_as_trends(stats_collection: StatsCollection):
         return

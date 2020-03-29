@@ -31,3 +31,4 @@ config.read(os.path.join(os.getenv('WORKDIR'), 'config', 'config_%s.ini' % os.ge
 
 db_factory = PDatabaseFactory(config)
 db = db_factory.get_instance('sqlite')
+db.connect()
