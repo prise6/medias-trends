@@ -7,7 +7,7 @@ import mediastrends.ygg as ygg
 def main():
    
     ## tracker ygg
-    torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [1, 2], category = [2])
+    torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [1, 2], category = [1, 2])
     logger_app.info("Torrents number: %s", len(torrents))
     stats_scraper = stats.StatsScraper(ygg.tracker)
     stats_scraper.torrents = torrents

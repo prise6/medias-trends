@@ -8,7 +8,7 @@ from mediastrends.trends.TrendsEngine import ClassicTrendsEngine
 
 
 def main():
-    torrents = PDbManager.get_torrents_by_status([0, 1, 2], 1)
+    torrents = PDbManager.get_torrents_by_status([0, 1, 2], 2)
     logger_app.info("Torrents number %s", len(torrents))
     trends_manager = TrendsManager(config)
     

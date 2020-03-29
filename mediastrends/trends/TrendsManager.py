@@ -30,9 +30,10 @@ class TrendsManager():
 
         nb_to_keep = int(np.ceil(self.cfg.getfloat('trends', 'tau') * len(stats_collections)))
 
-        df = stats_collections.dataframe
-        stats_collections.dataframe = df[:self._maxdate]
-        
+        for sc in stats_collections:
+            df = sc.dataframe
+            sc.dataframe = df[:self._maxdate]
+            
         scores = np.array([trend_engine.score(s) for s in stats_collections])
         item_sorted = np.argsort(scores)[::-1]
 
