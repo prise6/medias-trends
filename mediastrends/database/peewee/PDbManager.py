@@ -1,4 +1,6 @@
+import datetime
 import peewee
+from peewee import fn
 from mediastrends import logger_app
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
@@ -29,6 +31,7 @@ class PDbManager(DbManager):
             db_torrent.name,
             db_torrent.pub_date,
             db_torrent.size,
+            db_torrent.status,
             db_torrent.category,
         )
         return torrent
@@ -223,3 +226,39 @@ class PDbManager(DbManager):
         result = result.where(expression)
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
+    def get_trending_torrents_by_category(category: list = None, min_date = None, max_date = None):
+
+        if not min_date and not max_date:
+            max_date = PDbManager.get_max_trend_date_by_category(category)
+            min_date = max_date - datetime.timedelta(hours=1)
+        
+        sub_q = PTrends.select(PTrends.id, fn.row_number().over(
+            partition_by = [PTrends.torrent],
+            order_by = [PTrends.valid_date.desc()]
+        ).alias("row_number")).where((PTrends.valid_date.between(min_date, max_date)))
+
+        result = PTrends.select(PTrends, PTorrent).join(PTorrent)
+            
+        if category:
+            if not isinstance(category, list):
+                category = [category]
+            result = result.where((PTorrent.category.in_(category)))
+
+        result = result.join(sub_q, on = (
+                (sub_q.c.row_number == 1)  
+                & (sub_q.c.id == PTrends.id)
+            )).order_by(PTrends.score.desc())
+
+        return [(PDbManager.db_to_torrent(db_trends.torrent), db_trends.score, db_trends.valid_date) for db_trends in result]
+
+    ##
+    ## SPECIAL REQUESTS
+    ##
+
+    def get_max_trend_date_by_category(category: list = None):
+        result = PTrends.select(fn.Max(PTrends.valid_date)).join(PTorrent)
+        if category:
+            if not isinstance(category, list):
+                category = [category]
+            result = result.where((PTorrent.category.in_(category)))
+        return result.scalar()

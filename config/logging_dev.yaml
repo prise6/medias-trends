@@ -17,6 +17,10 @@ loggers:
     level: INFO
     handlers: [console]
     propage: no
+  peewee:
+    level: INFO
+    handlers: [console]
+    propage: no
 root:
   level: DEBUG
   handlers: [console]

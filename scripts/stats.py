@@ -1,5 +1,6 @@
 from mediastrends import config, db, logger_app
 from mediastrends.database.peewee.PDbManager import PDbManager
+from mediastrends.torrent.Torrent import Torrent
 import mediastrends.stats as stats
 import mediastrends.ygg as ygg
 
@@ -7,7 +8,7 @@ import mediastrends.ygg as ygg
 def main():
    
     ## tracker ygg
-    torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [1, 2], category = [1, 2])
+    torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW])
     logger_app.info("Torrents number: %s", len(torrents))
     stats_scraper = stats.StatsScraper(ygg.tracker)
     stats_scraper.torrents = torrents

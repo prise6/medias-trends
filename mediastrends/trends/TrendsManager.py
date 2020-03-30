@@ -1,6 +1,7 @@
 import numpy as np
 import datetime
 from mediastrends import logger_app
+from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.stats import StatsCollection
@@ -8,9 +9,12 @@ from mediastrends.trends.TrendsEngine import TrendsEngine
 
 class TrendsManager():
 
-    def __init__(self, config, maxdate = datetime.datetime.now()):
+    def __init__(self, config, dbmanager: DbManager, category: list = None, maxdate = datetime.datetime.now()):
         self.cfg = config
+        self._dbmanager = dbmanager
+        self._category = category
         self._maxdate = maxdate
+        self._trending_torrents = None
         self._is_trending = []
         self._is_not_trending = []
 
@@ -46,3 +50,12 @@ class TrendsManager():
                 self._is_not_trending.append(sc)        
 
         return self
+
+    def save_trends(self):
+        for stats_col in self._is_trending:
+            try:
+                self._dbmanager.save_stats_collection_as_trends(stats_col)
+                for torrent in stats_col.torrents:
+                    logger_app.info("%s / score : %s" % (str(torrent), stats_col.score))
+            except Exception as err:
+                logger_app.error(err)

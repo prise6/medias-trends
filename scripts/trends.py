@@ -5,27 +5,23 @@ import mediastrends.stats as stats
 import mediastrends.ygg as ygg
 from mediastrends.trends.TrendsManager import TrendsManager
 from mediastrends.trends.TrendsEngine import ClassicTrendsEngine
+from mediastrends.torrent.Torrent import Torrent
 
 
 def main():
-    torrents = PDbManager.get_torrents_by_status([0, 1, 2], 2)
-    logger_app.info("Torrents number %s", len(torrents))
-    trends_manager = TrendsManager(config)
-    
-    stats_collections = [PDbManager.get_stats_collection(t) for t in torrents]
-    logger_app.info("Stats collections number %s", len(stats_collections))
+    try:
+        torrents = PDbManager.get_torrents_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW])
+        logger_app.info("Torrents number %s", len(torrents))
+        trends_manager = TrendsManager(config, PDbManager)
+        
+        stats_collections = [PDbManager.get_stats_collection(t) for t in torrents]
+        logger_app.info("Stats collections number %s", len(stats_collections))
 
-    trends_manager.evaluate(stats_collections, ClassicTrendsEngine())
-    
-    is_trending = trends_manager.is_trending
-    for stats_col in is_trending:
-        try:
-            PDbManager.save_stats_collection_as_trends(stats_col)
-            for torrent in stats_col.torrents:
-                print("%s / score : %s" % (str(torrent), stats_col.score))
-        except Exception as err:
-            logger_app.error(err)
-            
+        trends_manager.evaluate(stats_collections, ClassicTrendsEngine())
+        trends_manager.save_trends()
+    except ValueError as err:
+        logger_app.info("Aucun torrent dans la categorie")
+
 
 if __name__ == '__main__':
     main()
