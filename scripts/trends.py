@@ -10,14 +10,9 @@ from mediastrends.torrent.Torrent import Torrent
 
 def main():
     try:
-        torrents = PDbManager.get_torrents_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW])
-        logger_app.info("Torrents number %s", len(torrents))
         trends_manager = TrendsManager(config, PDbManager)
         
-        stats_collections = [PDbManager.get_stats_collection(t) for t in torrents]
-        logger_app.info("Stats collections number %s", len(stats_collections))
-
-        trends_manager.evaluate(stats_collections, ClassicTrendsEngine())
+        trends_manager.evaluate(ClassicTrendsEngine())
         trends_manager.save_trends()
     except ValueError as err:
         logger_app.info("Aucun torrent dans la categorie")

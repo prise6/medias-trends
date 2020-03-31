@@ -9,28 +9,35 @@ from mediastrends.trends.TrendsEngine import TrendsEngine
 
 class TrendsManager():
 
-    def __init__(self, config, dbmanager: DbManager, category: list = None, maxdate = datetime.datetime.now()):
+    def __init__(self, config, dbmanager: DbManager, category: list = None, mindate = None, maxdate = datetime.datetime.now()):
         self.cfg = config
         self._dbmanager = dbmanager
         self._category = category
         self._maxdate = maxdate
-        self._trending_torrents = None
         self._is_trending = []
-        self._is_not_trending = []
+        self._candidates_stats_collections = []
 
     @property
     def is_trending(self):
         return self._is_trending
 
     @property
-    def is_not_trending(self):
-        return self._is_not_trending
+    def candidates_stats_collections(self):
+        if not self._candidates_stats_collections:
+            try:
+                self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_UNFOLLOW, Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW])
+            except ValueError as err:
+                logger_app.info("Zero candidates is empty")
+        return self._candidates_stats_collections
 
     @property
     def maxdate(self):
         return self._maxdate
 
-    def evaluate(self, stats_collections: list, trend_engine: TrendsEngine = None):
+    def evaluate(self, trend_engine: TrendsEngine, stats_collections: list = None):
+
+        if not stats_collections:
+            stats_collections = self.candidates_stats_collections
 
         nb_to_keep = int(np.ceil(self.cfg.getfloat('trends', 'tau') * len(stats_collections)))
 
@@ -45,9 +52,7 @@ class TrendsManager():
             sc = stats_collections[index]
             sc.score = scores[index]
             if key < nb_to_keep:
-                self._is_trending.append(sc)
-            else:
-                self._is_not_trending.append(sc)        
+                self._is_trending.append(sc)   
 
         return self
 

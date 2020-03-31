@@ -168,7 +168,7 @@ class PDbManager(DbManager):
     def save_stats_collection_as_trends(stats_collection: StatsCollection):
         for torrent in stats_collection.torrents:
             db_torrent = PDbManager.torrent_to_db(torrent)
-            PTrends.create(
+            PTrends.get_or_create(
                 torrent = db_torrent,
                 valid_date = stats_collection.valid_date,
                 score = float(stats_collection.score)
@@ -191,6 +191,39 @@ class PDbManager(DbManager):
 
         return StatsCollection(stats_list)
     
+    def get_stats_collections_by_status(status: list, category: list = None, min_date = None, max_date = datetime.datetime.now()):
+        
+        torrents = PTorrent.select()
+
+        if not isinstance(status, list):
+            status = [status]
+        predicate_torrents = PTorrent.status.in_(status)
+
+        if category:
+            if not isinstance(category, list):
+                category = [category]
+            predicate_torrents &= PTorrent.category.in_(category)
+
+        torrents = torrents.where(predicate_torrents)
+        
+        stats = PStats.select(PStats, PTracker).join(torrents, on = (
+            torrents.c.id == PStats.torrent_id
+        )).switch(PStats).join(PTracker)
+
+        if not min_date:
+            min_date = max_date - datetime.timedelta(days=31)
+
+        stats = stats.where(PStats.valid_date.between(min_date, max_date))
+
+        torrents_with_stats = peewee.prefetch(torrents, stats)
+
+        stats_collections = []
+        for db_torrent in torrents_with_stats:
+            torrent = PDbManager.db_to_torrent(db_torrent)
+            stats_collections.append(StatsCollection([PDbManager.db_to_stats(s, torrent) for s in db_torrent.stats]))
+
+        return stats_collections
+
     def get_torrents_by_status(status: list, category: list = None):
         result = PTorrent.select()
         

@@ -13,3 +13,6 @@ class PTrends(Model):
 
     class Meta:
         database = db
+        indexs = (
+            (('torrent', 'valid_date'), True),
+        )
