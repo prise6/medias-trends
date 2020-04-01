@@ -6,6 +6,7 @@ import configparser
 from configparser import ExtendedInterpolation
 
 from mediastrends.database.peewee.PDatabaseFactory import PDatabaseFactory
+from mediastrends.torrent.Torrent import Torrent
 
 
 ##
@@ -30,5 +31,13 @@ config.read(os.path.join(os.getenv('WORKDIR'), 'config', 'config_%s.ini' % os.ge
 ##
 
 db_factory = PDatabaseFactory(config)
-db = db_factory.get_instance('sqlite')
-db.connect()
+
+##
+## Global variables
+##
+
+CATEGORY_NAME = {
+    'movies': Torrent._CAT_MOVIE,
+    'series': Torrent._CAT_SERIE,
+    'unknown': Torrent._CAT_UNKNOWN
+}

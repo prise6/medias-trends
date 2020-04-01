@@ -1,4 +1,4 @@
-from mediastrends import config, db
+from mediastrends import config, db_factory
 from peewee import *
 
 
@@ -10,4 +10,4 @@ class PTracker(Model):
     path = CharField(max_length=255)
 
     class Meta:
-        database = db
+        database = db_factory.database_proxy

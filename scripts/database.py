@@ -1,21 +1,30 @@
+import argparse
 import datetime
-import mediastrends
-from mediastrends import config, db
-from mediastrends.database.peewee.PTorrent import PTorrent, PTorrentTracker 
-from mediastrends.database.peewee.PTracker import PTracker
-from mediastrends.database.peewee.PPage import PPage
-from mediastrends.database.peewee.PStats import PStats
-from mediastrends.database.peewee.PDbManager import PDbManager
+from mediastrends.tasks import *
 
 
-exit()
+def main(action, table_names: list = None, backup_date: str = None):
 
-db.connect()
-db.drop_tables([PTorrent, PTracker, PPage, PTorrentTracker, PStats], safe=True)
-db.create_tables([PTorrent, PTracker, PPage, PTorrentTracker, PStats])
+    if action == 'reset_db':
+        reset_database()
+    elif action == 'reset_table':
+        for table_name in tables_names:
+            reset_table_(table_name)
+    elif action == 'backup_db':
+        sqlite_backup()
+    elif action == 'load_backup':
+        load_sqlite_backup(backup_date)
 
-PTorrent._schema.truncate_table()
-PTracker._schema.truncate_table()
-PPage._schema.truncate_table()
-PTorrentTracker._schema.truncate_table()
-PStats._schema.truncate_table()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action", help="Action on database", type=str, choices = ["reset_db", "reset_table", "backup_db", "load_backup"])
+    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrentracker", "tracker", "page", "stats", "trends"])
+    parser.add_argument("-d", "--backup_date", help="Backup date: YYYYMMDD", type=backup_date)
+
+    args = parser.parse_args()
+    main(args.action, args.tables, args.backup_date)
+    exit()
+
+
+

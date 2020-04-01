@@ -25,7 +25,7 @@ class TrendsManager():
     def candidates_stats_collections(self):
         if not self._candidates_stats_collections:
             try:
-                self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_UNFOLLOW, Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW])
+                self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category = self._category)
             except ValueError as err:
                 logger_app.info("Zero candidates is empty")
         return self._candidates_stats_collections

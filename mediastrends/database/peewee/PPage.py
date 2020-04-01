@@ -1,6 +1,6 @@
 from peewee import *
 
-from mediastrends import config, db
+from mediastrends import config, db_factory
 from .PTorrent import PTorrent
 from .PTracker import PTracker
 
@@ -11,5 +11,5 @@ class PPage(Model):
     url = CharField(max_length=2048)
 
     class Meta:
-        database = db
+        database = db_factory.database_proxy
         primary_key = CompositeKey('torrent', 'tracker')

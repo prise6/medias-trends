@@ -1,6 +1,6 @@
 from peewee import *
 
-from mediastrends import config, db
+from mediastrends import config, db_factory
 from .PTorrent import PTorrent
 from .PTracker import PTracker
 
@@ -15,5 +15,5 @@ class PStats(Model):
     valid_date = DateTimeField()
 
     class Meta:
-        database = db
+        database = db_factory.database_proxy
 

@@ -1,6 +1,6 @@
 from peewee import *
 
-from mediastrends import config, db
+from mediastrends import config, db_factory
 from .PTracker import PTracker
 
 
@@ -17,7 +17,7 @@ class PTorrent(Model):
     category = IntegerField(null = False, default=0, choices=CATEGORY)
 
     class Meta:
-        database = db
+        database = db_factory.database_proxy
 
 
 class PTorrentTracker(Model):
@@ -26,5 +26,5 @@ class PTorrentTracker(Model):
     torrent = ForeignKeyField(PTorrent)
 
     class Meta:
-        database = db
+        database = db_factory.database_proxy
         primary_key = CompositeKey('tracker', 'torrent')
