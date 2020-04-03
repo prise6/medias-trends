@@ -3,11 +3,13 @@ import logging
 from abc import ABC, abstractmethod, abstractstaticmethod
 import argparse
 import datetime
-import mediastrends.tasks as tasks 
+from mediastrends import config
+import mediastrends.tasks as tasks
+import mediastrends.tools.config as cfg
 
 """
 mediastrends (CLI)
-1. database
+1. database --config-dir --mode
     1. reset
         1. table [tables ...] --no-safe/--safe
         2. db --safe/--no-safe
@@ -27,7 +29,10 @@ mediastrends (CLI)
 logger = logging.getLogger(__name__)
 
 def _argument_config_file(parser):
-    parser.add_argument("-f", "--config-file", help="Configuration file", type=str)
+    parser.add_argument("-f", "--config-dir", help="Configuration directory. Load mediastrends.MODE.ini", type=str)
+
+def _argument_mode(parser):
+    parser.add_argument("-m", "--mode", help="Mode. Override MEDIATRENDS_MODE environment", type=str)
 
 def _argument_category(parser):
     parser.add_argument("-c", "--category", help="Torrents category", type=str, nargs = '+', choices = ["movies", "series", "unknown"])
@@ -215,13 +220,16 @@ class MediasTrendsCLI(AbstractParser):
     def build(self):
         TopLevelSubParsers(self.parser, title = "Top level commands")
         _argument_config_file(self.parser)
+        _argument_mode(self.parser)
 
     def execute(self, args = sys.argv[1:]):
         parsed_args = self.parser.parse_args(args)
         parsed_args_dict = vars(parsed_args)
 
-        if parsed_args_dict.get('config_file', None):
-           print("Modifier la configuration") 
+        config_dir = parsed_args_dict.get('config_dir', None)
+        mode = parsed_args_dict.get('mode', None)
+        if config_dir or mode:
+            cfg.populate_config(config = config, user_dir_config = config_dir, mode = mode, reload_ = True)
 
         super().execute(args)
 
