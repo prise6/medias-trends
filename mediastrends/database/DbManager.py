@@ -1,3 +1,4 @@
+import datetime
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
@@ -48,7 +49,11 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def save_stats(stats: Stats, torrent: Torrent, tracker: Tracker):
+    def save_stats(stats: Stats):
+        return
+
+    @abstractstaticmethod
+    def save_stats_collection_as_trends(stats_collection: StatsCollection):
         return
 
     @abstractstaticmethod
@@ -63,12 +68,20 @@ class DbManager(ABC):
     def get_stats_collection_by_torrent(torrent: Torrent):
         return
 
+    @abstractmethod
+    def get_stats_collections_by_status(status: list, category: list = None, min_date = None, max_date = datetime.datetime.now()):
+        return
+
     @abstractstaticmethod
     def get_torrents_by_status(status: int, category: list = None):
         return
 
     @abstractstaticmethod
     def get_torrents_by_tracker(tracker: Tracker, status: list, category: list = None):
+        return
+
+    @abstractstaticmethod
+    def get_trending_torrents_by_category(category: list = None, min_date = None, max_date = None):
         return
 
     @classmethod
@@ -82,7 +95,3 @@ class DbManager(ABC):
         else:
             raise ValueError("Not implemented yet.")
         return stats_collection
-
-    @abstractstaticmethod
-    def save_stats_collection_as_trends(stats_collection: StatsCollection):
-        return

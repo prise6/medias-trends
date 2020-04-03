@@ -1,4 +1,5 @@
 import sys
+import logging
 from abc import ABC, abstractmethod, abstractstaticmethod
 import argparse
 import datetime
@@ -23,6 +24,11 @@ mediastrends (CLI)
 3. tests (do do)
 """
 
+logger = logging.getLogger(__name__)
+
+def _argument_config_file(parser):
+    parser.add_argument("-f", "--config-file", help="Configuration file", type=str)
+
 def _argument_category(parser):
     parser.add_argument("-c", "--category", help="Torrents category", type=str, nargs = '+', choices = ["movies", "series", "unknown"])
 
@@ -35,7 +41,24 @@ def _argument_maxdate(parser):
 def _argument_tracker(parser):
     parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices = ["ygg"])
 
+def _arugment_tables(parser):
+    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrentracker", "tracker", "page", "stats", "trends"])
 
+def _argument_backup_date(parser):
+    parser.add_argument("-d", "--backup_date", help="Backup date: YYYYMMDD-HHMM", type=tasks.backup_date)
+
+def _argument_no_backup(parser):
+    parser.add_argument("--no-backup", help = "No backup are made", action='store_true')
+
+def _argument_test(parser):
+    parser.add_argument("--test", help = "Actions is not really called", action='store_true')
+
+
+##
+## abstract classes
+##
+
+#region
 class AbstractParser(ABC):
 
     def __init__(self, parser = argparse.ArgumentParser()):
@@ -47,16 +70,19 @@ class AbstractParser(ABC):
     def build():
         return
 
-    def task():
-        raise NotImplementedError()
+    def task(self, **kwargs):
+        raise NotImplementedError("This parser does not handle these arguments")
 
     def execute(self, args = sys.argv[1:]):
         parsed_args = self.parser.parse_args(args)
-        # print(vars(parsed_args))
+        parsed_args_dict = vars(parsed_args)
+
         try:
-            parsed_args.func(**vars(parsed_args))
-        except Exception:
+            parsed_args.func(**parsed_args_dict)
+        except NotImplementedError as err:
+            logger.debug(err)
             self.parser.print_help()
+
 
 class AbstractSubParsers(ABC):
 
@@ -68,7 +94,13 @@ class AbstractSubParsers(ABC):
     @abstractmethod
     def add_parsers(self):
         return
+#endregion
 
+##
+## Parsers
+##
+
+#region
 
 class TorrentsTrendsGetParser(AbstractParser):
 
@@ -76,6 +108,7 @@ class TorrentsTrendsGetParser(AbstractParser):
         _argument_category(self.parser)
         _argument_mindate(self.parser)
         _argument_maxdate(self.parser)
+        _argument_test(self.parser)
 
     def task(self, **kwargs):
         tasks.get_trending(**kwargs)
@@ -86,58 +119,130 @@ class TorrentsTrendsComputeParser(AbstractParser):
         _argument_category(self.parser)
         _argument_mindate(self.parser)
         _argument_maxdate(self.parser)
+        _argument_test(self.parser)
 
     def task(self, **kwargs):
-        print("compute_trending...")
-        # tasks.compute_trending(**kwargs)
+        tasks.compute_trending(**kwargs)
 
 class TorrentsAddParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser)
         _argument_tracker(self.parser)
+        _argument_test(self.parser)
 
     def task(self, **kwargs):
-        print("add torrents...")
-        # tasks.add_torrents(**kwargs)
+        tasks.add_torrents(**kwargs)
 
 class TorrentsStatsParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser)
         _argument_tracker(self.parser)
+        _argument_test(self.parser)
 
     def task(self, **kwargs):
-        print("stats torrents...")
-        # tasks.get_stats(**kwargs)
+        tasks.get_stats(**kwargs)
 
 class TorrentsStatusParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser)
+        _argument_test(self.parser)
 
     def task(self, **kwargs):
-        print("Status torrents...")
-        # tasks.get_stats(**kwargs)
+        tasks.update_status(**kwargs)
 
+class DatabaseResetTableParser(AbstractParser):
+
+    def build(self):
+        _argument_no_backup(self.parser)
+        _arugment_tables(self.parser)
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        tasks.reset_tables(**kwargs)
+
+class DatabaseResetDBParser(AbstractParser):
+
+    def build(self):
+        _argument_no_backup(self.parser)
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        tasks.reset_database(**kwargs)
+
+class DatabaseBackupSaveParser(AbstractParser):
+
+    def build(self):
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        tasks.sqlite_backup(**kwargs)
+
+class DatabaseBackupLoadParser(AbstractParser):
+
+    def build(self):
+        _argument_backup_date(self.parser)
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        tasks.load_sqlite_backup(**kwargs)
+
+#endregion
+
+##
+## MAIN PARSER (TOP LEVEL PARSER)
+##
+
+#region
 class MediasTrendsCLI(AbstractParser):
     
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            prog = 'mediastrends',
+            description = "CLI to interact with mediastrends'tasks \n\n"+
+                "The logic steps to update database are:\n" +
+                "    1. torrents add\n" +
+                "    2. torrents stats\n" +
+                "    3. torrents trends compute\n" +
+                "    4. torrents status\n" +
+                "    5. torrents trends get",
+            formatter_class=argparse.RawTextHelpFormatter
+        )
+        super().__init__(parser)
+
     def build(self):
         TopLevelSubParsers(self.parser, title = "Top level commands")
+        _argument_config_file(self.parser)
 
+    def execute(self, args = sys.argv[1:]):
+        parsed_args = self.parser.parse_args(args)
+        parsed_args_dict = vars(parsed_args)
 
+        if parsed_args_dict.get('config_file', None):
+           print("Modifier la configuration") 
+
+        super().execute(args)
+
+#endregion
+
+##
+## Sub Parsers
+##
+
+#region
 class TopLevelSubParsers(AbstractSubParsers):
 
     def add_parsers(self):
         DatabaseSubParsers(self.subparsers.add_parser("database", help = "Commands on torrent"), title = "Database commands")
-        TorrentsSubParsers(self.subparsers.add_parser("torrents", help = "Command on database"), title = "Torrents commands")
-
+        TorrentsSubParsers(self.subparsers.add_parser("torrents", help = "Commands on database"), title = "Torrents commands")
 
 class DatabaseSubParsers(AbstractSubParsers):
 
     def add_parsers(self):
-        self.subparsers.add_parser("reset", help = "reset actions on table/database")
-        self.subparsers.add_parser("backup", help = "backups actions")
+        DatabaseResetSubParsers(self.subparsers.add_parser("reset", help = "reset actions on table/database"), title = "Reset tables or database")
+        DatabaseBackupSubParsers(self.subparsers.add_parser("backup", help = "backups actions"), title="save or load backup")
 
 class TorrentsSubParsers(AbstractSubParsers):
 
@@ -154,10 +259,28 @@ class TorrentsTrendsSubParsers(AbstractSubParsers):
         TorrentsTrendsGetParser(self.subparsers.add_parser("get", help = "Print trending torrents"))
         
 
+class DatabaseResetSubParsers(AbstractSubParsers):
 
+    def add_parsers(self):
+        DatabaseResetTableParser(self.subparsers.add_parser("table", help = "drop and re-create table"))
+        DatabaseResetDBParser(self.subparsers.add_parser("db", help = "drop and re-create database"))
 
+class DatabaseBackupSubParsers(AbstractSubParsers):
+
+    def add_parsers(self):
+        DatabaseBackupSaveParser(self.subparsers.add_parser("save", help = "Create backup"))
+        DatabaseBackupLoadParser(self.subparsers.add_parser("load", help = "Load old backup into actual database"))
+#endregion
+
+##
+## MAIN PROGRAM
+##
+
+def main():
+    cli = MediasTrendsCLI()
+    cli.execute()
 
 
 if __name__ == '__main__':
-    cli = MediasTrendsCLI()
-    cli.execute()
+    main()
+    exit()

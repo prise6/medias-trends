@@ -1,11 +1,16 @@
+import logging
 from mediastrends import config, db_factory, logger_app, CATEGORY_NAME
 from mediastrends.database.peewee.PDbManager import PDbManager
 from mediastrends.torrent.Torrent import Torrent
 import mediastrends.stats as stats
 import mediastrends.ygg as ygg
 
+logger = logging.getLogger(__name__)
 
-def get_stats(tracker_name, category, **kwargs):
+def get_stats(test, tracker_name, category, **kwargs):
+    if test:
+        logger.debug("get_stats task")
+        return
     category = [CATEGORY_NAME.get(c) for c in category]
     if tracker_name == 'ygg':
         _get_ygg_stats(category)

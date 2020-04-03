@@ -1,10 +1,15 @@
+import logging
 from mediastrends.database.peewee.PDbManager import PDbManager
 from mediastrends import config, db_factory, CATEGORY_NAME, logger_app
 from mediastrends.torrent.Torrent import Torrent
 import mediastrends.ygg as ygg
 
+logger = logging.getLogger(__name__)
 
-def add_torrents(tracker_name: str, category: list = None, **kwargs):
+def add_torrents(test, tracker_name: str, category: list = None, **kwargs):
+    if test:
+        logger.debug("add_torrents task")
+        return
     for c in category:
         if tracker_name == 'ygg':
             _add_ygg_torrents(c)
