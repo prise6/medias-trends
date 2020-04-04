@@ -25,8 +25,47 @@ mediastrends (CLI)
     4. status --category
 3. tests (do do)
 """
+##
+## Logging
+##
 
 logger = logging.getLogger(__name__)
+
+def setup_logging(verbose_level):
+    verbose_to_level = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+
+    if verbose_level > 0:
+        verbose_level = 5 - (5 if verbose_level > 5 else verbose_level)
+        dict_config = {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters':{
+                'standard': {
+                    'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                },
+            },
+            'handlers': {
+                'default': {
+                    'level': 'DEBUG',
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'standard'
+                },
+            },
+            'loggers': {
+                'mediastrends': {
+                    'handlers': ['default'],
+                    'level': verbose_to_level[verbose_level],
+                    'propagate': True
+                }
+            }
+        }
+        logging.config.dictConfig(dict_config)
+    return
+
+
+##
+## Arguments definition
+##
 
 def _argument_config_file(parser):
     parser.add_argument("-f", "--config-dir", help="Configuration directory. Load mediastrends.MODE.ini", type=str)
@@ -34,8 +73,11 @@ def _argument_config_file(parser):
 def _argument_mode(parser):
     parser.add_argument("-m", "--mode", help="Mode. Override MEDIATRENDS_MODE environment", type=str)
 
-def _argument_category(parser):
-    parser.add_argument("-c", "--category", help="Torrents category", type=str, nargs = '+', choices = ["movies", "series", "unknown"])
+def _argument_verbose(parser):
+    parser.add_argument("-v", "--verbose", help="Set mediastrend logger level, 0 to 5.", action="count", default=0)
+
+def _argument_category(parser, **kwargs):
+    parser.add_argument("-c", "--category", help="Torrents category", type=str, nargs = '+', choices = ["movies", "series", "unknown"], **kwargs)
 
 def _argument_mindate(parser):
     parser.add_argument("-di", "--mindate", help="Min datetime: YYYYMMDDHHMM", type=lambda s: datetime.datetime.strptime(s, '%Y%m%d%H%M'))
@@ -44,10 +86,10 @@ def _argument_maxdate(parser):
     parser.add_argument("-dx", "--maxdate", help="Max datetime: YYYYMMDDHHMM", type=lambda s: datetime.datetime.strptime(s, '%Y%m%d%H%M'))
 
 def _argument_tracker(parser):
-    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices = ["ygg"])
+    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices = ["ygg"], required=True)
 
 def _arugment_tables(parser):
-    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrentracker", "tracker", "page", "stats", "trends"])
+    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrentracker", "tracker", "page", "stats", "trends"], required=True)
 
 def _argument_backup_date(parser):
     parser.add_argument("-d", "--backup_date", help="Backup date: YYYYMMDD-HHMM", type=tasks.backup_date)
@@ -56,7 +98,7 @@ def _argument_no_backup(parser):
     parser.add_argument("--no-backup", help = "No backup are made", action='store_true')
 
 def _argument_test(parser):
-    parser.add_argument("--test", help = "Actions is not really called", action='store_true')
+    parser.add_argument("--test", help = "Action is not really called", action='store_true')
 
 
 ##
@@ -132,7 +174,7 @@ class TorrentsTrendsComputeParser(AbstractParser):
 class TorrentsAddParser(AbstractParser):
 
     def build(self):
-        _argument_category(self.parser)
+        _argument_category(self.parser, required=True)
         _argument_tracker(self.parser)
         _argument_test(self.parser)
 
@@ -219,12 +261,15 @@ class MediasTrendsCLI(AbstractParser):
 
     def build(self):
         TopLevelSubParsers(self.parser, title = "Top level commands")
+        _argument_verbose(self.parser)
         _argument_config_file(self.parser)
         _argument_mode(self.parser)
 
     def execute(self, args = sys.argv[1:]):
         parsed_args = self.parser.parse_args(args)
         parsed_args_dict = vars(parsed_args)
+
+        setup_logging(parsed_args_dict.get('verbose', 0))
 
         config_dir = parsed_args_dict.get('config_dir', None)
         mode = parsed_args_dict.get('mode', None)

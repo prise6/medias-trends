@@ -1,6 +1,6 @@
 import logging
 from mediastrends.database.peewee.PDbManager import PDbManager
-from mediastrends import config, db_factory, CATEGORY_NAME, logger_app
+from mediastrends import config, db_factory, CATEGORY_NAME
 from mediastrends.torrent.Torrent import Torrent
 import mediastrends.ygg as ygg
 
@@ -10,6 +10,9 @@ def add_torrents(test, tracker_name: str, category: list = None, **kwargs):
     if test:
         logger.debug("add_torrents task")
         return
+    
+    assert category is not None
+
     for c in category:
         if tracker_name == 'ygg':
             _add_ygg_torrents(c)
@@ -28,7 +31,7 @@ def _add_ygg_torrents(category: str):
     db = db_factory.get_instance()
     with db:
         for idx, item in enumerate(ygg_rss.items):
-            logger_app.info("---> RSS item %s/%s ... " % (idx+1, _N_ITEMS))
+            logger.debug("---> RSS item %s/%s ... " % (idx+1, _N_ITEMS))
             ygg_page = ygg.page_from_rss_item(ygg_rss, idx, True)
             ygg_torrent = ygg.torrent_from_page(ygg_page)
 

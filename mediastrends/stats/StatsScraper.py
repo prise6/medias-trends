@@ -1,3 +1,4 @@
+import logging
 import urllib.parse
 import random
 import datetime
@@ -5,12 +6,13 @@ import time
 from retry import retry
 import requests
 
-from mediastrends import logger_app, config
+from mediastrends import config
 import mediastrends.tools as tools
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
 
+logger = logging.getLogger(__name__)
 
 class StatsScraper():
 
@@ -65,15 +67,11 @@ class StatsScraper():
 
         return url
 
-    @retry(requests.exceptions.RequestException, tries=_RETRIES, delay=_DELAY, jitter=(3, 10))
+    @retry(requests.exceptions.RequestException, tries=_RETRIES, delay=_DELAY, jitter=(3, 10), logger=logger)
     def run(self, info_hashes: list):
-        logger_app.info('---> Building scrape url ...')
         url = self.url(info_hashes)
-        logger_app.info('---> Contacting Tracker ...')
         content = tools.get_request_content(url, self._HEADERS)
-        logger_app.info('---> Parse content ...')
         self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
-        logger_app.info('---> Done.')
 
 
     def run_by_batch(self):
@@ -81,7 +79,7 @@ class StatsScraper():
             try:
                 self.run(info_hashes)
             except requests.exceptions.RequestException as err:
-                logger_app.warning(err)
+                logger.warning(err)
                 continue
     
 

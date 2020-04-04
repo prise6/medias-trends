@@ -1,11 +1,13 @@
-import numpy as np
 import datetime
-from mediastrends import logger_app
+import logging
+import numpy as np
 from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.stats import StatsCollection
 from mediastrends.trends.TrendsEngine import TrendsEngine
+
+logger = logging.getLogger(__name__)
 
 class TrendsManager():
 
@@ -27,7 +29,7 @@ class TrendsManager():
             try:
                 self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category = self._category)
             except ValueError as err:
-                logger_app.info("Zero candidates is empty")
+                logger.warning("Candidates stats collections are empty")
         return self._candidates_stats_collections
 
     @property
@@ -41,6 +43,8 @@ class TrendsManager():
 
         nb_to_keep = int(np.ceil(self.cfg.getfloat('trends', 'tau') * len(stats_collections)))
 
+        logger.debug("Number of torrents to keep: %s", nb_to_keep)
+        
         for sc in stats_collections:
             df = sc.dataframe
             sc.dataframe = df[:self._maxdate]
@@ -61,6 +65,6 @@ class TrendsManager():
             try:
                 self._dbmanager.save_stats_collection_as_trends(stats_col)
                 for torrent in stats_col.torrents:
-                    logger_app.info("%s / score : %s" % (str(torrent), stats_col.score))
+                    logger.debug("%s / score : %s" % (str(torrent), stats_col.score))
             except Exception as err:
-                logger_app.error(err)
+                logger.error(err)

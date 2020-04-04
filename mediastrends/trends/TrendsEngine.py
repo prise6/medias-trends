@@ -1,7 +1,10 @@
 import pandas as pd
+import logging
 import numpy as np
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mediastrends.stats import StatsCollection
+
+logger = logging.getLogger(__name__)
 
 class TrendsEngine(ABC):
 
@@ -16,6 +19,7 @@ class ClassicTrendsEngine(TrendsEngine):
         completed_trend = False
         
         if stats_collection.is_empty():
+            logger.warning('stats collection is empty')
             return 0
 
         # stats_collection.create_dataframe()

@@ -1,7 +1,7 @@
 import datetime
+import logging
 import peewee
 from peewee import fn
-from mediastrends import logger_app
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
@@ -14,6 +14,7 @@ from .PPage import PPage
 from .PStats import PStats
 from .PTrends import PTrends
 
+logger = logging.getLogger(__name__)
 
 class PDbManager(DbManager):
 
@@ -74,7 +75,7 @@ class PDbManager(DbManager):
             defaults = {'scheme': tracker.scheme, 'netloc': tracker.netloc, 'path': tracker.path}
         )
         if created:
-            logger_app.info("Tracker has been created")
+            logger.debug("Tracker has been created")
         else:
             db_tracker.scheme = tracker.scheme
             db_tracker.netloc = tracker.netloc
@@ -90,7 +91,7 @@ class PDbManager(DbManager):
             defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
         )
         if created:
-            logger_app.info("Torrent has been created")
+            logger.debug("Torrent has been created")
         else:
             #force torrent values
             db_torrent.name = torrent.name
@@ -133,7 +134,7 @@ class PDbManager(DbManager):
         )
 
         if created:
-            logger_app.info("Page has been created")
+            logger.debug("Page has been created")
 
         return db_page
 
@@ -142,7 +143,7 @@ class PDbManager(DbManager):
         db_torrent = PDbManager.torrent_to_db(torrent)
         db_torrent_tracker, created = PTorrentTracker.get_or_create(tracker=db_tracker, torrent=db_torrent)
         if created:
-            logger_app.info("Relation torrent-tracker has been created")
+            logger.debug("Relation torrent-tracker has been created")
 
         return db_torrent_tracker
     
@@ -161,18 +162,20 @@ class PDbManager(DbManager):
             }
         )
         if created:
-            logger_app.info("Stats for %s saved (%s)", stats.torrent.name, stats.valid_date)
+            logger.debug("Stats for %s saved (%s)", stats.torrent.name, stats.valid_date)
 
         return db_stats
 
     def save_stats_collection_as_trends(stats_collection: StatsCollection):
         for torrent in stats_collection.torrents:
             db_torrent = PDbManager.torrent_to_db(torrent)
-            PTrends.get_or_create(
+            db_trends, created = PTrends.get_or_create(
                 torrent = db_torrent,
                 valid_date = stats_collection.valid_date,
                 score = float(stats_collection.score)
             )
+            if not created:
+                logger.debug("Trends already saved")
 
 
     ##
@@ -222,6 +225,9 @@ class PDbManager(DbManager):
             torrent = PDbManager.db_to_torrent(db_torrent)
             stats_collections.append(StatsCollection([PDbManager.db_to_stats(s, torrent) for s in db_torrent.stats]))
 
+        if len(stats_collections) == 0:
+            raise ValueError("No stats collection with status '%s'" % status)
+
         return stats_collections
 
     def get_torrents_by_status(status: list, category: list = None):
@@ -263,6 +269,8 @@ class PDbManager(DbManager):
 
         if not min_date and not max_date:
             max_date = PDbManager.get_max_trend_date_by_category(category)
+            if max_date is None:
+                raise ValueError("Maximum trend date is null")
             min_date = max_date - datetime.timedelta(hours=1)
         
         sub_q = PTrends.select(PTrends.id, fn.row_number().over(

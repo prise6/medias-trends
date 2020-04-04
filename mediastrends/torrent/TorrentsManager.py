@@ -1,9 +1,10 @@
 import datetime
-from mediastrends import logger_app
+import logging
 from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
 
+logger = logging.getLogger(__name__)
 
 class TorrentsManager():
 
@@ -22,7 +23,7 @@ class TorrentsManager():
             try:
                 self._torrents_candidates = self._dbmanager.get_torrents_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], self._category)
             except ValueError as err:
-                logger_app.info("Zero candidates is empty")
+                logger.warning("Candidate torrents are empty.")
 
         return self._torrents_candidates
 
@@ -32,7 +33,7 @@ class TorrentsManager():
             try:
                 self._torrents_trending = self._dbmanager.get_trending_torrents_by_category(self._category)
             except ValueError as err:
-                logger_app.info("Trending torrent is empty")
+                logger.warning("Trending torrents are empty")
         return self._torrents_trending
 
     @property
@@ -78,8 +79,8 @@ class TorrentsManager():
                     nb_follow_unfollow += 1
                     torrent.unfollow()
         
-        logger_app.info("New torrents (%s) to follow: %s", nb_new, nb_new_follow)
-        logger_app.info("Follow torrents (%s) to keep: %s", nb_follow, nb_follow - nb_follow_unfollow)
+        logger.debug("New torrents (%s) to follow: %s", nb_new, nb_new_follow)
+        logger.debug("Follow torrents (%s) to keep: %s", nb_follow, nb_follow - nb_follow_unfollow)
 
         return self
 

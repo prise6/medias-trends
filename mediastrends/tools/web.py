@@ -1,15 +1,15 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 import urllib.request
 import urllib.parse
 import torrent_parser as tp
 
-from mediastrends import logger_app, config
-
+logger = logging.getLogger(__name__)
 
 def get_request_(url: str, headers):
     with requests.get(url, headers=headers) as response:
-        logger_app.info('--> status code: %s' % (str(response.status_code)))
+        logger.debug('--> status code: %s' % (str(response.status_code)))
         if not response.status_code == requests.codes.ok:
             return None
         else:

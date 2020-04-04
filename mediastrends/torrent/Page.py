@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod, abstractstaticmethod
+import logging
 import datetime
 from retry.api import retry_call
 
-from mediastrends import logger_app, config
+from mediastrends import config
 import mediastrends.tools as tools
 
+logger = logging.getLogger(__name__)
 
 class Page(ABC):
 
@@ -49,9 +51,9 @@ class Page(ABC):
     @property
     def soup(self):
         if not self._soup:
-            logger_app.info("Let's scrap page: %s", self._url)
+            logger.debug("Scraping page: %s", self._url)
             # self.soup = tools.parsed_html_content(self._url, headers = self._HEADERS)
-            self.soup = retry_call(tools.parsed_html_content, fkwargs={"url": self._url, "headers": self._HEADERS}, tries=self._RETRIES, delay=self._DELAY, jitter=(3, 10))
+            self.soup = retry_call(tools.parsed_html_content, fkwargs={"url": self._url, "headers": self._HEADERS}, tries=self._RETRIES, delay=self._DELAY, jitter=(3, 10), logger=logger)
         return self._soup
 
     @soup.setter

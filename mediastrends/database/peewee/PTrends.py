@@ -13,6 +13,6 @@ class PTrends(Model):
 
     class Meta:
         database = db_factory.database_proxy
-        indexs = (
+        indexes = (
             (('torrent', 'valid_date'), True),
         )

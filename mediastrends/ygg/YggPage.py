@@ -4,7 +4,7 @@ import requests
 import re
 import datetime
 
-from mediastrends import logger_app, config
+from mediastrends import config
 from .YggRSS import YggRSS
 from mediastrends.torrent.Page import Page
 from mediastrends.torrent.Torrent import Torrent
@@ -101,7 +101,6 @@ class YggPage(Page):
     @property
     def category(self):
         sub_cat = self.sub_cat
-        print(sub_cat)
         if sub_cat in [2183]:
             return Torrent._CAT_MOVIE
         elif sub_cat in [2184]:
