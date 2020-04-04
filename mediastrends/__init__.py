@@ -10,10 +10,7 @@ from mediastrends.torrent.Torrent import Torrent
 ##
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
-logging.getLogger('peewee').addHandler(logging.NullHandler())
-logger = logging.getLogger('peewee')
-logger.info("TTTESST")
-# logging.getLogger(__name__)
+
 
 ##
 ## Configuration
