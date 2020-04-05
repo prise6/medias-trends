@@ -1,13 +1,27 @@
 from setuptools import find_packages, setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+with open('requirements.txt', 'r') as f:
+    requirements = f.read().splitlines()
+
 setup(
     name='mediastrends',
-    entry_points = {
+    version='1.0.0',
+    entry_points={
         'console_scripts': ['mediastrends=mediastrends.cli:main']
     },
     packages=find_packages(),
-    version='0.1.0',
-    description='Trends of medias',
+    include_package_data=True,
+    platforms=['any'],
+    install_requires=requirements,
+    url="https://github.com/prise6/medias-trends",
+    description='Trends of medias torrents',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author='prise6',
-    license='Prise6 Copyright 2020',
+    author_email="vieille.francois@gmail.com",
+    license='NeedToBeDetermined',
+    python_requires='>=3.6'
 )
