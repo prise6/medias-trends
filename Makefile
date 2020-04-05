@@ -26,6 +26,11 @@ docker-dev-exec:
 install-dev:
 	pip install -e .
 
+unittest:
+	python -m unittest discover -s tests
+
+flake8:
+	flake8 mediastrends --count --statistics --ignore=E501,W503 --show-source
 
 ##
 ## PROD COMMANDS - INSIDE CORE CONTAINER

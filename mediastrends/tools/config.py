@@ -21,7 +21,7 @@ def init_config():
 
 
 def populate_config(config, user_dir_config=None, mode=None, reload_=True):
-    mode = mode if mode else os.getenv('MEDIATRENDS_MODE')
+    mode = mode if mode else os.getenv('MEDIASTRENDS_MODE')
     if reload_:
         for s in config.sections():
             config.remove_section(s)
@@ -40,7 +40,7 @@ def populate_config(config, user_dir_config=None, mode=None, reload_=True):
 
 def look_for_user_config_file(dirs=_DIRS_TO_LOOK_FOR, mode=None):
     if not mode:
-        raise ValueError("Mode muse be set. export MEDIATRENDS_MODE as environnement variable.")
+        raise ValueError("Mode muse be set. export MEDIASTRENDS_MODE as environnement variable.")
     for dir_ in _DIRS_TO_LOOK_FOR:
         if dir_:
             candidat = os.path.join(dir_, _CONFIG_FILE_NAME % mode)

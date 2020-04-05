@@ -73,7 +73,7 @@ def _argument_config_file(parser):
 
 
 def _argument_mode(parser):
-    parser.add_argument("-m", "--mode", help="Mode. Override MEDIATRENDS_MODE environment", type=str)
+    parser.add_argument("-m", "--mode", help="Mode. Override MEDIASTRENDS_MODE environment", type=str)
 
 
 def _argument_verbose(parser):
