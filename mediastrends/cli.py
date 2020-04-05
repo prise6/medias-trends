@@ -89,10 +89,10 @@ def _argument_tracker(parser):
     parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices = ["ygg"], required=True)
 
 def _arugment_tables(parser):
-    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrentracker", "tracker", "page", "stats", "trends"], required=True)
+    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs = '+', choices = ["torrent", "torrenttracker", "tracker", "page", "stats", "trends"], required=True)
 
 def _argument_backup_date(parser):
-    parser.add_argument("-d", "--backup_date", help="Backup date: YYYYMMDD-HHMM", type=tasks.backup_date)
+    parser.add_argument("-d", "--backup-date", help="Backup date: YYYYMMDD-HHMM", type=tasks.backup_date)
 
 def _argument_no_backup(parser):
     parser.add_argument("--no-backup", help = "No backup are made", action='store_true')
@@ -108,13 +108,15 @@ def _argument_test(parser):
 #region
 class AbstractParser(ABC):
 
-    def __init__(self, parser = argparse.ArgumentParser()):
+    def __init__(self, parser = None):
+        if parser is None:
+            parser = argparse.ArgumentParser()
         self.parser = parser
         self.build()
+        self.parsed_args_dict = {}
         self.parser.set_defaults(func=self.task)
     
-    @abstractmethod
-    def build():
+    def build(self):
         return
 
     def task(self, **kwargs):
@@ -122,15 +124,11 @@ class AbstractParser(ABC):
 
     def execute(self, args = sys.argv[1:]):
         parsed_args = self.parser.parse_args(args)
-        parsed_args_dict = vars(parsed_args)
+        self.parsed_args_dict = vars(parsed_args)
 
-        try:
-            parsed_args.func(**parsed_args_dict)
-        except NotImplementedError as err:
-            logger.debug(err)
-            self.parser.print_help()
-
-
+        parsed_args.func(**self.parsed_args_dict)
+            
+        
 class AbstractSubParsers(ABC):
 
     def __init__(self, parent_parser, **kwargs):
@@ -331,7 +329,11 @@ class DatabaseBackupSubParsers(AbstractSubParsers):
 
 def main():
     cli = MediasTrendsCLI()
-    cli.execute()
+    try:
+        cli.execute()
+    except NotImplementedError as err:
+        logger.debug(err)
+        cli.parser.print_help()
 
 
 if __name__ == '__main__':
