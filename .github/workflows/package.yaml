@@ -32,8 +32,8 @@ jobs:
       - name: Set up config file
         run: |
           touch $HOME/mediastrends_test_ini
-          echo ${{ secrets.mediastrends_test_ini }}
-          echo ${{ secrets.mediastrends_test_ini }} > $HOME/mediastrends.test.ini
+          echo "${{ secrets.mediastrends_test_ini }}"
+          echo "${{ secrets.mediastrends_test_ini }}" > $HOME/mediastrends.test.ini
       - name: Run tests with unittest
         run: |
           python -m unittest discover -s tests
