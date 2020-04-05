@@ -29,8 +29,13 @@ jobs:
         run: |
           pip install flake8
           flake8 mediastrends --count --statistics --ignore=E501,W503 --show-source
+      - name: Set up config file
+        run: |
+          cat $HOME/secrets/mediastrends_test_ini 
+          cp $HOME/secrets/mediastrends_test_ini $HOME/mediastrends.test.ini
       - name: Run tests with unittest
         run: |
           python -m unittest discover -s tests
         env:
           MEDIASTRENDS_MODE: test
+          MEDIASTRENDS_DIRCONF: $HOME
