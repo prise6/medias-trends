@@ -1,3 +1,3 @@
-from .Stats import *
-from .StatsScraper import *
-from .StatsCollection import *
+from .Stats import * # noqa
+from .StatsScraper import * # noqa
+from .StatsCollection import * # noqa

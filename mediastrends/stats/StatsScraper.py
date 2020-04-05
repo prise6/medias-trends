@@ -1,8 +1,5 @@
 import logging
 import urllib.parse
-import random
-import datetime
-import time
 from retry import retry
 import requests
 
@@ -14,6 +11,7 @@ from mediastrends.stats.StatsCollection import StatsCollection
 
 logger = logging.getLogger(__name__)
 
+
 class StatsScraper():
 
     _HEADERS = {}
@@ -21,7 +19,7 @@ class StatsScraper():
     _BATCH_SIZE = config.getint('requests', 'batch_size')
     _RETRIES = config.getint('retry', 'tries')
     _DELAY = config.getint('retry', 'delay')
-    
+
     def __init__(self, tracker: Tracker):
         self._tracker = tracker
         self._torrents_lookup = {}
@@ -42,20 +40,20 @@ class StatsScraper():
 
     @torrents.setter
     def torrents(self, torrents: list):
-        self._torrents_lookup = { t.info_hash: t for t in torrents }
+        self._torrents_lookup = {t.info_hash: t for t in torrents}
         self._info_hashes = self.extract_info_hashes()
         self._parsed_content = {}
 
     @property
     def stats_collection(self):
         return StatsCollection([Stats(
-            torrent = self._torrents_lookup[info_hash],
-            tracker = self._tracker,
-            seeders = c.get('complete'),
-            leechers = c.get('incomplete'),
-            completed = c.get('downloaded')
+            torrent=self._torrents_lookup[info_hash],
+            tracker=self._tracker,
+            seeders=c.get('complete'),
+            leechers=c.get('incomplete'),
+            completed=c.get('downloaded')
         ) for info_hash, c in self._parsed_content.items()])
-    
+
     def extract_info_hashes(self):
         return [('info_hash', bytes.fromhex(info_hash)) for info_hash in self._torrents_lookup.keys()]
 
@@ -73,7 +71,6 @@ class StatsScraper():
         content = tools.get_request_content(url, self._HEADERS)
         self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
 
-
     def run_by_batch(self):
         for info_hashes in tools.batch(self._info_hashes, self._BATCH_SIZE):
             try:
@@ -81,6 +78,3 @@ class StatsScraper():
             except requests.exceptions.RequestException as err:
                 logger.warning(err)
                 continue
-    
-
-

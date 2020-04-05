@@ -16,16 +16,17 @@ from .PTrends import PTrends
 
 logger = logging.getLogger(__name__)
 
+
 class PDbManager(DbManager):
 
     def __init__(self, config, db):
         self.db = db
         super().__init__(config)
 
-    ##
-    ## DB to object
-    ##
-    
+    #
+    # DB to object
+    #
+
     def db_to_torrent(db_torrent: PTorrent):
         torrent = Torrent(
             db_torrent.info_hash,
@@ -48,31 +49,31 @@ class PDbManager(DbManager):
 
     def db_to_page(db_page: PPage):
         page = Page(
-            url = db_page.url
+            url=db_page.url
         )
         return page
 
     def db_to_stats(db_stats: PStats, torrent: Torrent = None, tracker: Tracker = None):
         stats = Stats(
-            leechers = db_stats.leechers,
-            seeders = db_stats.seeders,
-            completed = db_stats.completed,
-            tracker = tracker if tracker else PDbManager.db_to_tracker(db_stats.tracker),
-            torrent = torrent if torrent else PDbManager.db_to_torrent(db_stats.torrent),
-            valid_date = db_stats.valid_date
+            leechers=db_stats.leechers,
+            seeders=db_stats.seeders,
+            completed=db_stats.completed,
+            tracker=tracker if tracker else PDbManager.db_to_tracker(db_stats.tracker),
+            torrent=torrent if torrent else PDbManager.db_to_torrent(db_stats.torrent),
+            valid_date=db_stats.valid_date
         )
         return stats
 
-    ##
-    ## TO DB (meaning get_or_create)
-    ##
+    #
+    # TO DB (meaning get_or_create)
+    #
 
     def tracker_to_db(tracker: Tracker):
         if not isinstance(tracker, Tracker):
             raise ValueError("Tracker must be Tracker instance")
         db_tracker, created = PTracker.get_or_create(
-            name = tracker.name,
-            defaults = {'scheme': tracker.scheme, 'netloc': tracker.netloc, 'path': tracker.path}
+            name=tracker.name,
+            defaults={'scheme': tracker.scheme, 'netloc': tracker.netloc, 'path': tracker.path}
         )
         if created:
             logger.debug("Tracker has been created")
@@ -87,13 +88,13 @@ class PDbManager(DbManager):
         if not isinstance(torrent, Torrent):
             raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
-            info_hash = torrent.info_hash,
-            defaults = {'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
+            info_hash=torrent.info_hash,
+            defaults={'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
         )
         if created:
             logger.debug("Torrent has been created")
         else:
-            #force torrent values
+            # force torrent values
             db_torrent.name = torrent.name
             db_torrent.pub_date = torrent.pub_date
             db_torrent.size = torrent.size
@@ -102,9 +103,9 @@ class PDbManager(DbManager):
 
         return db_torrent
 
-    ##
-    ## updates
-    ##
+    #
+    # updates
+    #
 
     def update(obj):
         class_name = obj.__class__.__name__.lower()
@@ -112,25 +113,24 @@ class PDbManager(DbManager):
         try:
             method = getattr(PDbManager, method_to_call)
             db_obj = method(obj)
-        except AttributeError as err:
+        except AttributeError:
             raise ValueError("Method %s doesn't exist" % method_to_call)
-        
+
         return db_obj, db_obj.save()
 
-
-    ##
-    ## Special save
-    ##
+    #
+    # Special save
+    #
 
     def save_page(page: Page, torrent: Torrent, tracker: Tracker):
         res = PDbManager.save_torrent_tracker(torrent, tracker)
         db_tracker = res.tracker
         db_torrent = res.torrent
-    
+
         db_page, created = PPage.get_or_create(
-            torrent = db_torrent,
-            tracker = db_tracker,
-            defaults = {'url': page.url}
+            torrent=db_torrent,
+            tracker=db_tracker,
+            defaults={'url': page.url}
         )
 
         if created:
@@ -146,7 +146,7 @@ class PDbManager(DbManager):
             logger.debug("Relation torrent-tracker has been created")
 
         return db_torrent_tracker
-    
+
     def save_stats(stats: Stats):
         res = PDbManager.save_torrent_tracker(stats.torrent, stats.tracker)
         db_tracker = res.tracker
@@ -155,7 +155,7 @@ class PDbManager(DbManager):
             tracker=db_tracker,
             torrent=db_torrent,
             valid_date=stats.valid_date,
-            defaults = {
+            defaults={
                 'leechers': stats.leechers,
                 'seeders': stats.seeders,
                 'completed': stats.completed
@@ -170,32 +170,31 @@ class PDbManager(DbManager):
         for torrent in stats_collection.torrents:
             db_torrent = PDbManager.torrent_to_db(torrent)
             db_trends, created = PTrends.get_or_create(
-                torrent = db_torrent,
-                valid_date = stats_collection.valid_date,
-                score = float(stats_collection.score)
+                torrent=db_torrent,
+                valid_date=stats_collection.valid_date,
+                score=float(stats_collection.score)
             )
             if not created:
                 logger.debug("Trends already saved")
 
-
-    ##
-    ## GET DB BY ...
-    ##
+    #
+    # GET DB BY ...
+    #
 
     def get_torrent_by_hash(info_hash: str):
-        return PDbManager.db_to_torrent(PTorrent.get(info_hash = info_hash))
+        return PDbManager.db_to_torrent(PTorrent.get(info_hash=info_hash))
 
     def get_tracker_by_name(name: str):
-        return PDbManager.db_to_tracker(PTracker.get(name = name))
+        return PDbManager.db_to_tracker(PTracker.get(name=name))
 
     def get_stats_collection_by_torrent(torrent: Torrent):
         db_torrent = PDbManager.torrent_to_db(torrent)
         stats_list = [PDbManager.db_to_stats(s, torrent) for s in db_torrent.stats]
 
         return StatsCollection(stats_list)
-    
-    def get_stats_collections_by_status(status: list, category: list = None, min_date = None, max_date = datetime.datetime.now()):
-        
+
+    def get_stats_collections_by_status(status: list, category: list = None, min_date=None, max_date=datetime.datetime.now()):
+
         torrents = PTorrent.select()
 
         if not isinstance(status, list):
@@ -208,8 +207,8 @@ class PDbManager(DbManager):
             predicate_torrents &= PTorrent.category.in_(category)
 
         torrents = torrents.where(predicate_torrents)
-        
-        stats = PStats.select(PStats, PTracker).join(torrents, on = (
+
+        stats = PStats.select(PStats, PTracker).join(torrents, on=(
             torrents.c.id == PStats.torrent_id
         )).switch(PStats).join(PTracker)
 
@@ -232,12 +231,12 @@ class PDbManager(DbManager):
 
     def get_torrents_by_status(status: list, category: list = None):
         result = PTorrent.select()
-        
+
         if not isinstance(status, list):
             status = [status]
 
         expression = PTorrent.status.in_(status)
-        
+
         if category:
             if not isinstance(category, list):
                 category = [category]
@@ -247,7 +246,7 @@ class PDbManager(DbManager):
 
         if result.count() == 0:
             raise ValueError("No torrent with status '%s'" % status)
-        
+
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
     def get_torrents_by_tracker(tracker: Tracker, status: list = None, category: list = None):
@@ -265,36 +264,36 @@ class PDbManager(DbManager):
         result = result.where(expression)
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
-    def get_trending_torrents_by_category(category: list = None, min_date = None, max_date = None):
+    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None):
 
         if not min_date and not max_date:
             max_date = PDbManager.get_max_trend_date_by_category(category)
             if max_date is None:
                 raise ValueError("Maximum trend date is null")
             min_date = max_date - datetime.timedelta(hours=1)
-        
+
         sub_q = PTrends.select(PTrends.id, fn.row_number().over(
-            partition_by = [PTrends.torrent],
-            order_by = [PTrends.valid_date.desc()]
+            partition_by=[PTrends.torrent],
+            order_by=[PTrends.valid_date.desc()]
         ).alias("row_number")).where((PTrends.valid_date.between(min_date, max_date)))
 
         result = PTrends.select(PTrends, PTorrent).join(PTorrent)
-            
+
         if category:
             if not isinstance(category, list):
                 category = [category]
             result = result.where((PTorrent.category.in_(category)))
 
-        result = result.join(sub_q, on = (
-                (sub_q.c.row_number == 1)  
-                & (sub_q.c.id == PTrends.id)
-            )).order_by(PTrends.score.desc())
+        result = result.join(sub_q, on=(
+            (sub_q.c.row_number == 1)
+            & (sub_q.c.id == PTrends.id)
+        )).order_by(PTrends.score.desc())
 
         return [(PDbManager.db_to_torrent(db_trends.torrent), db_trends.score, db_trends.valid_date) for db_trends in result]
 
-    ##
-    ## SPECIAL REQUESTS
-    ##
+    #
+    # SPECIAL REQUESTS
+    #
 
     def get_max_trend_date_by_category(category: list = None):
         result = PTrends.select(fn.Max(PTrends.valid_date)).join(PTorrent)

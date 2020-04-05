@@ -1,5 +1,6 @@
 import urllib.parse
 
+
 class Tracker:
 
     def __init__(self, scheme, netloc, path, name):

@@ -1,11 +1,11 @@
 import datetime
-import time
+import argparse
 import os
 import logging
 from playhouse.sqlite_ext import CSqliteExtDatabase
 
 from mediastrends import config, db_factory
-from mediastrends.database.peewee.PTorrent import PTorrent, PTorrentTracker 
+from mediastrends.database.peewee.PTorrent import PTorrent, PTorrentTracker
 from mediastrends.database.peewee.PTracker import PTracker
 from mediastrends.database.peewee.PPage import PPage
 from mediastrends.database.peewee.PStats import PStats
@@ -26,26 +26,29 @@ _TABLES_MODELS = {
 _BACKUP_FORMAT = "backup-sqlite-%s.db"
 _BACKUP_DATE_FORMAT = "%Y%m%d-%H%M"
 
+
 def reset_table_(model_name, no_backup, test, **kwargs):
     assert model_name in _TABLES_MODELS.keys()
 
     if no_backup:
         logger.debug("Not implemented yey")
         return
-    
+
     model = _TABLES_MODELS.get(model_name, None)
     if test:
         logger.debug("reset_table_ task")
         return
-    with db_factory.get_instance() as db:
+    with db_factory.get_instance():
         model.drop_table()
         model.create_table()
+
 
 def reset_tables(tables, **kwargs):
     for model_name in tables:
         reset_table_(model_name, **kwargs)
 
-def reset_database(test, no_backup = False, **kwargs):
+
+def reset_database(test, no_backup=False, **kwargs):
     if test:
         logger.debug("reset_database task")
         return
@@ -60,6 +63,7 @@ def reset_database(test, no_backup = False, **kwargs):
         db.drop_tables(models, safe=True)
         db.create_tables(models)
 
+
 def sqlite_backup(test, **kwargs):
     if test:
         logger.debug("sqlite_backup task")
@@ -68,6 +72,7 @@ def sqlite_backup(test, **kwargs):
         assert isinstance(db, CSqliteExtDatabase)
         filename = os.path.join(config.get('sqlite', 'backup_dir'), _BACKUP_FORMAT % (datetime.datetime.now().strftime(_BACKUP_DATE_FORMAT)))
         db.backup_to_file(filename)
+
 
 def load_sqlite_backup(backup_date: str, test, **kwargs):
     if test:
@@ -78,6 +83,7 @@ def load_sqlite_backup(backup_date: str, test, **kwargs):
         backup_filename = os.path.join(config.get('sqlite', 'backup_dir'), _BACKUP_FORMAT % (backup_date))
         db_backup = CSqliteExtDatabase(backup_filename)
         db_backup.backup(db)
+
 
 def backup_date(s):
     try:

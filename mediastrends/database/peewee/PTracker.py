@@ -1,5 +1,6 @@
-from mediastrends import config, db_factory
-from peewee import *
+from peewee import Model, CharField
+
+from mediastrends import db_factory
 
 
 class PTracker(Model):

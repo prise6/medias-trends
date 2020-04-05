@@ -36,7 +36,7 @@ def yggrss_from_feedparser(argument: str):
     items = []
     for item in d['entries']:
         name = item['title']
-        match = re.search("(.*)\(S:\d+/L:\d+\)$", name)
+        match = re.search(r"(.*)\(S:\d+/L:\d+\)$", name)
         try:
             name = match.group(1).strip()
         except IndexError:
@@ -48,5 +48,3 @@ def yggrss_from_feedparser(argument: str):
         })
 
     return YggRSS(items)
-
-

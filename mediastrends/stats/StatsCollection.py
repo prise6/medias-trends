@@ -1,8 +1,4 @@
-import datetime
 import pandas as pd
-from mediastrends.torrent.Torrent import Torrent
-from mediastrends.torrent.Tracker import Tracker
-from mediastrends.torrent.Page import Page
 
 
 class StatsCollection():
@@ -82,8 +78,3 @@ class StatsCollection():
             r += "\nSample torrent: %s" % (self._stats[-1].torrent.name)
 
         return r
-
-    
-
-
-    

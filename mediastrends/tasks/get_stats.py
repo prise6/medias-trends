@@ -1,11 +1,12 @@
 import logging
-from mediastrends import config, db_factory, CATEGORY_NAME
+from mediastrends import db_factory, CATEGORY_NAME
 from mediastrends.database.peewee.PDbManager import PDbManager
 from mediastrends.torrent.Torrent import Torrent
 import mediastrends.stats as stats
 import mediastrends.ygg as ygg
 
 logger = logging.getLogger(__name__)
+
 
 def get_stats(test, tracker_name, category, **kwargs):
     if test:
@@ -17,9 +18,10 @@ def get_stats(test, tracker_name, category, **kwargs):
         _get_ygg_stats(category)
     return
 
-def _get_ygg_stats(category: list=None):
-    with db_factory.get_instance() as db:
-        torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status = [Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category = category)
+
+def _get_ygg_stats(category: list = None):
+    with db_factory.get_instance():
+        torrents = PDbManager.get_torrents_by_tracker(ygg.tracker, status=[Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category=category)
         logger.debug("Torrents number: %s", len(torrents))
 
         stats_scraper = stats.StatsScraper(ygg.tracker)
@@ -32,7 +34,7 @@ def _get_ygg_stats(category: list=None):
         if stats_collection.count() != len(torrents):
             logger.warning("Statistics count is wrong %s/%s", stats_collection.count(), len(torrents))
 
-    with db_factory.get_instance() as db:
+    with db_factory.get_instance():
         for ygg_stats in stats_collection.stats:
             db_stats = PDbManager.save_stats(ygg_stats)
-    return
+    return db_stats

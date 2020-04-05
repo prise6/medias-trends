@@ -12,7 +12,7 @@ class Stats():
         self._completed = completed
         self._tracker = tracker
         self._torrent = torrent
-    
+
         self.valid_date = valid_date
 
     @property
@@ -97,10 +97,10 @@ class Stats():
 
 def stats_from_page(page: Page, torrent: Torrent, tracker: Tracker):
     return Stats(
-        torrent = torrent,
-        tracker = tracker,
-        leechers = page.leechers,
-        seeders = page.seeders,
-        completed = page.completed,
-        valid_date = page.valid_date
+        torrent=torrent,
+        tracker=tracker,
+        leechers=page.leechers,
+        seeders=page.seeders,
+        completed=page.completed,
+        valid_date=page.valid_date
     )

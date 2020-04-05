@@ -1,13 +1,13 @@
-from peewee import *
+from peewee import Model, ForeignKeyField, IntegerField, DateTimeField
 
-from mediastrends import config, db_factory
+from mediastrends import db_factory
 from .PTorrent import PTorrent
 from .PTracker import PTracker
 
 
 class PStats(Model):
 
-    torrent = ForeignKeyField(PTorrent, backref = 'stats')
+    torrent = ForeignKeyField(PTorrent, backref='stats')
     tracker = ForeignKeyField(PTracker)
     leechers = IntegerField()
     seeders = IntegerField()
@@ -16,4 +16,3 @@ class PStats(Model):
 
     class Meta:
         database = db_factory.database_proxy
-

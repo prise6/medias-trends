@@ -1,6 +1,6 @@
-from .add_torrents import *
-from .compute_trending import *
-from .get_stats import *
-from .update_status import *
-from .database import *
-from .get_trending import *
+from .add_torrents import * # noqa
+from .compute_trending import * # noqa
+from .get_stats import * # noqa
+from .update_status import * # noqa
+from .database import * # noqa
+from .get_trending import * # noqa

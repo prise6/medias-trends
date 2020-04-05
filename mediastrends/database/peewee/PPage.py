@@ -1,8 +1,9 @@
-from peewee import *
+from peewee import Model, ForeignKeyField, CharField, CompositeKey
 
-from mediastrends import config, db_factory
+from mediastrends import db_factory
 from .PTorrent import PTorrent
 from .PTracker import PTracker
+
 
 class PPage(Model):
 

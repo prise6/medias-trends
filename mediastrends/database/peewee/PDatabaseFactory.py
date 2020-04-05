@@ -1,6 +1,7 @@
 from playhouse.sqlite_ext import CSqliteExtDatabase
 from peewee import DatabaseProxy
 
+
 class PDatabaseFactory:
 
     def __init__(self, config):
@@ -9,7 +10,7 @@ class PDatabaseFactory:
         self.defaut_instance = self.cfg.get('db', 'database')
         self.database_proxy = DatabaseProxy()
 
-    def get_instance(self, instance: str=None):
+    def get_instance(self, instance: str = None):
         if not instance:
             instance = self.defaut_instance
         if instance not in self.instances.keys():

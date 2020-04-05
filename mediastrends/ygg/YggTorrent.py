@@ -12,10 +12,9 @@ class YggTorrent(Torrent):
 
 def yggtorrent_from_yggpage(ygg_page: YggPage):
     return YggTorrent(
-        info_hash = ygg_page.info_hash,
-        name = ygg_page.name,
-        pub_date = ygg_page.pub_date,
-        size = ygg_page.size,
-        category = ygg_page.category
+        info_hash=ygg_page.info_hash,
+        name=ygg_page.name,
+        pub_date=ygg_page.pub_date,
+        size=ygg_page.size,
+        category=ygg_page.category
     )
-    

@@ -19,7 +19,8 @@ def init_config():
 
     return config
 
-def populate_config(config, user_dir_config = None, mode = None, reload_ = True):
+
+def populate_config(config, user_dir_config=None, mode=None, reload_=True):
     mode = mode if mode else os.getenv('MEDIATRENDS_MODE')
     if reload_:
         for s in config.sections():
@@ -28,7 +29,7 @@ def populate_config(config, user_dir_config = None, mode = None, reload_ = True)
     pkg_conf = look_for_package_config_file()
     if pkg_conf:
         config.read(pkg_conf)
-    
+
     potential_locations = _DIRS_TO_LOOK_FOR.insert(0, user_dir_config)
     user_config = look_for_user_config_file(potential_locations, mode)
 
@@ -37,7 +38,7 @@ def populate_config(config, user_dir_config = None, mode = None, reload_ = True)
     return config
 
 
-def look_for_user_config_file(dirs = _DIRS_TO_LOOK_FOR, mode = None):
+def look_for_user_config_file(dirs=_DIRS_TO_LOOK_FOR, mode=None):
     if not mode:
         raise ValueError("Mode muse be set. export MEDIATRENDS_MODE as environnement variable.")
     for dir_ in _DIRS_TO_LOOK_FOR:
@@ -46,14 +47,12 @@ def look_for_user_config_file(dirs = _DIRS_TO_LOOK_FOR, mode = None):
             if os.path.exists(candidat):
                 return candidat
     raise Exception("User must override some config values. No config found.")
-    
+
     return None
-    
+
+
 def look_for_package_config_file():
     theorical_conf = os.path.join(PACKAGE_DIR, 'mediastrends.ini')
     if os.path.exists(theorical_conf):
         return theorical_conf
     return None
-
-    
-

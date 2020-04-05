@@ -2,16 +2,15 @@ import datetime
 import logging
 import numpy as np
 from mediastrends.database.DbManager import DbManager
-from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
-from mediastrends.stats import StatsCollection
 from mediastrends.trends.TrendsEngine import TrendsEngine
 
 logger = logging.getLogger(__name__)
 
+
 class TrendsManager():
 
-    def __init__(self, config, dbmanager: DbManager, category: list = None, mindate = None, maxdate = datetime.datetime.now()):
+    def __init__(self, config, dbmanager: DbManager, category: list = None, mindate=None, maxdate=datetime.datetime.now()):
         self.cfg = config
         self._dbmanager = dbmanager
         self._category = category
@@ -27,8 +26,8 @@ class TrendsManager():
     def candidates_stats_collections(self):
         if not self._candidates_stats_collections:
             try:
-                self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category = self._category)
-            except ValueError as err:
+                self._candidates_stats_collections = self._dbmanager.get_stats_collections_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], category=self._category)
+            except ValueError:
                 logger.warning("Candidates stats collections are empty")
         return self._candidates_stats_collections
 
@@ -44,11 +43,11 @@ class TrendsManager():
         nb_to_keep = int(np.ceil(self.cfg.getfloat('trends', 'tau') * len(stats_collections)))
 
         logger.debug("Number of torrents to keep: %s", nb_to_keep)
-        
+
         for sc in stats_collections:
             df = sc.dataframe
             sc.dataframe = df[:self._maxdate]
-            
+
         scores = np.array([trend_engine.score(s) for s in stats_collections])
         item_sorted = np.argsort(scores)[::-1]
 
@@ -56,7 +55,7 @@ class TrendsManager():
             sc = stats_collections[index]
             sc.score = scores[index]
             if key < nb_to_keep:
-                self._is_trending.append(sc)   
+                self._is_trending.append(sc)
 
         return self
 

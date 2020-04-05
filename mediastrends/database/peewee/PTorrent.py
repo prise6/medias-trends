@@ -1,6 +1,6 @@
-from peewee import *
+from peewee import Model, ForeignKeyField, BigIntegerField, CharField, IntegerField, DateTimeField, CompositeKey
 
-from mediastrends import config, db_factory
+from mediastrends import db_factory
 from .PTracker import PTracker
 
 
@@ -11,10 +11,10 @@ class PTorrent(Model):
 
     info_hash = CharField(max_length=40, unique=True)
     name = CharField(max_length=255)
-    pub_date = DateTimeField(null = True)
-    size = BigIntegerField(null = True)
-    status = IntegerField(null = False, default=1, choices=STATUS)
-    category = IntegerField(null = False, default=0, choices=CATEGORY)
+    pub_date = DateTimeField(null=True)
+    size = BigIntegerField(null=True)
+    status = IntegerField(null=False, default=1, choices=STATUS)
+    category = IntegerField(null=False, default=0, choices=CATEGORY)
 
     class Meta:
         database = db_factory.database_proxy

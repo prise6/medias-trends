@@ -1,5 +1,6 @@
 import datetime
 
+
 class Torrent:
 
     _CAT_UNKNOWN = 0
@@ -9,7 +10,7 @@ class Torrent:
     _STATUS_UNFOLLOW = 0
     _STATUS_NEW = 1
     _STATUS_FOLLOW = 2
-    
+
     def __init__(self, info_hash: str, name: str, pub_date: datetime.date, size: int, status: int = 1, category: int = 0):
         self._info_hash = info_hash
         self._name = name
@@ -45,7 +46,7 @@ class Torrent:
     def follow(self):
         self._status = 2
         return self
-    
+
     def new(self):
         self._status = 1
         return self
@@ -55,9 +56,8 @@ class Torrent:
         return self
 
     def __str__(self):
-        return "%s: %s (%s)"  % (
+        return "%s: %s (%s)" % (
             self._info_hash,
             self._name,
             self._pub_date
         )
-        

@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 import logging
 import datetime
 from retry.api import retry_call
@@ -8,6 +8,7 @@ import mediastrends.tools as tools
 
 logger = logging.getLogger(__name__)
 
+
 class Page(ABC):
 
     _HEADERS = {}
@@ -15,7 +16,7 @@ class Page(ABC):
     _RETRIES = config.getint('retry', 'tries')
     _DELAY = config.getint('retry', 'delay')
 
-    def __init__(self, url, soup = None):
+    def __init__(self, url, soup=None):
         self.url = url
         self._soup = soup
         self._name = None
@@ -40,7 +41,7 @@ class Page(ABC):
     def valid_date(self, valid_date):
         return self.valid_date
 
-    @url.setter
+    @valid_date.setter
     def valid_date(self, valid_date: datetime.datetime):
         if not isinstance(valid_date, datetime.datetime):
             raise ValueError("valid_date (%s) should be datetime object", valid_date)

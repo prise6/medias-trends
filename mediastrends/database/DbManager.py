@@ -38,7 +38,7 @@ class DbManager(ABC):
 
     @abstractstaticmethod
     def update(obj):
-        return    
+        return
 
     @abstractstaticmethod
     def save_page(page: Page, torrent: Torrent, tracker: Tracker):
@@ -69,7 +69,7 @@ class DbManager(ABC):
         return
 
     @abstractmethod
-    def get_stats_collections_by_status(status: list, category: list = None, min_date = None, max_date = datetime.datetime.now()):
+    def get_stats_collections_by_status(status: list, category: list = None, min_date=None, max_date=datetime.datetime.now()):
         return
 
     @abstractstaticmethod
@@ -81,7 +81,7 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def get_trending_torrents_by_category(category: list = None, min_date = None, max_date = None):
+    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None):
         return
 
     @classmethod
@@ -90,7 +90,7 @@ class DbManager(ABC):
             stats_collection = cls.get_stats_collection_by_torrent(obj)
         elif isinstance(obj, list):
             stats_collection = StatsCollection([])
-            for item in obj: 
+            for item in obj:
                 stats_collection += cls.get_stats_collection(item)
         else:
             raise ValueError("Not implemented yet.")
