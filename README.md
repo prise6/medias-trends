@@ -2,12 +2,15 @@
 
 ## Package `mediastrends`
 
-### Requirements
+
+### Requirements
+
 
 * Python >= 3.6
 * Linux OS (debian, ubuntu)
 * set `MEDIASTRENDS_MODE` global environment variable 
 * create configuration file to put in `<project>/mediastrends.MODE.ini`
+
 
 ### CLI
 
