@@ -15,6 +15,9 @@ logs/*
 sqlite/*
 !sqlite/.gitkeep
 
+jackett/*
+!jackett/.gitkeep
+
 docker/Makefile
 docker/requirements.txt
 docker/start-dev.sh
