@@ -29,6 +29,9 @@ def _add_ygg_torrents(category: str):
     ygg_rss = ygg.rss_from_feedparser(config.get('ygg', rss_file))
     _N_ITEMS = len(ygg_rss.items)
 
+    if _N_ITEMS == 0:
+        logger.warning("RSS feed is empty")
+    db_page = None
     db = db_factory.get_instance()
     with db:
         for idx, item in enumerate(ygg_rss.items):
