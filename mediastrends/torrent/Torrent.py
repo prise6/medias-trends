@@ -56,8 +56,9 @@ class Torrent:
         return self
 
     def __str__(self):
-        return "%s: %s (%s)" % (
+        return "%s: %s (%s/%s)" % (
             self._info_hash,
             self._name,
-            self._pub_date
+            self._pub_date,
+            self._category
         )
