@@ -1,3 +1,7 @@
+"""
+DEPRECATED : use of Jackett + Torznab specification
+"""
+
 import re
 import datetime
 

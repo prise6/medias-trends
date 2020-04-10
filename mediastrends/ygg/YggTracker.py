@@ -1,3 +1,7 @@
+"""
+DEPRECATED : use of Jackett + Torznab specification
+"""
+
 from mediastrends import config
 from mediastrends.torrent.Tracker import Tracker
 
