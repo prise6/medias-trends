@@ -96,6 +96,10 @@ def _argument_tracker(parser):
     parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=["ygg"], required=True)
 
 
+def _argument_indexer(parser):
+    parser.add_argument("-i", "--indexer", help="Indexer ID", type=str, choices=["yggtorrent", "yts"], required=True)
+
+
 def _arugment_tables(parser):
     parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs='+', choices=["torrent", "torrenttracker", "tracker", "page", "stats", "trends"], required=True)
 
@@ -187,7 +191,7 @@ class TorrentsAddParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser, required=True)
-        _argument_tracker(self.parser)
+        _argument_indexer(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):

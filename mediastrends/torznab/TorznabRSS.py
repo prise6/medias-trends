@@ -1,7 +1,7 @@
 import logging
 import dateutil.parser
 import xml.etree.ElementTree as ET
-from mediastrends.torrent.Torrent import Torrent
+from mediastrends.torrent.Torrent import Torrent, TorrentFile
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ _TORZNAB_RESULTS_FIELDS = {
     "guid": str,
     "jackettindexer": str,
     "comments": str,
-    "pubDate": dateutil.parser.parse,
+    "pubDate": lambda d: dateutil.parser.parse(d, ignoretz=True),
     "size": int,
     "files": int,
     "grabs": int,
@@ -62,9 +62,11 @@ class TorznabJackettRSS():
         return None
 
     def process_items(self):
+        self.parse()
+
         for item in self._feed_parsed.findall('./channel/item'):
             fields_values = {field: formatter(TorznabJackettRSS.get_value(item, field)) for field, formatter in _TORZNAB_RESULTS_FIELDS.items() if TorznabJackettRSS.get_value(item, field) is not None}
-            self.items.append(TorznabJackettRSSItem(fields_values))
+            self.items.append(TorznabJackettResult(fields_values))
 
         if not self.items:
             logger.warning('List items is empty')
@@ -72,7 +74,7 @@ class TorznabJackettRSS():
         return self
 
 
-class TorznabJackettRSSItem():
+class TorznabJackettResult():
 
     def __init__(self, dict_: dict = None):
 
@@ -82,6 +84,10 @@ class TorznabJackettRSSItem():
     def get(self, key, default=None):
         return self._elements.get(key, default)
 
+    def update(self, key, value):
+        self._elements.update({key: value})
+        return self
+
     @staticmethod
     def transform_category(jackett_category):
         for app_cat, bounds in _JACKETT_CATEGORIES.items():
@@ -89,31 +95,15 @@ class TorznabJackettRSSItem():
                 return app_cat
         return Torrent._CAT_UNKNOWN
 
-    def to_torrent(self):
+    def to_torrent_file(self):
 
-        # if self.get('infohash') is None:
-        #     raise ValueError('Infohash is none. Need to find this value')
-
-        # if self.get('title') is None:
-        #     raise ValueError('Title is none. Need to find this value')
-
-        # if self.get('pubDate') is None:
-        #     raise ValueError('PubDate is none. Need to find this value')
-
-        # if self.get('size') is None:
-        #     raise ValueError('Size is none. Need to find this value')
-
-        torrent = Torrent(
+        torrent_file = TorrentFile(
+            resource=self.get('link'),
             info_hash=self.get('infohash'),
             name=self.get('title'),
             pub_date=self.get('pubDate'),
             size=self.get('size'),
-            category=TorznabJackettRSSItem.transform_category(self.get('category'))
+            category=TorznabJackettResult.transform_category(self.get('category'))
         )
-        return torrent
 
-    def to_movie(self):
-        raise NotImplementedError
-
-    def to_serie(self):
-        raise NotImplementedError
+        return torrent_file
