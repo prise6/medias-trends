@@ -51,6 +51,14 @@ def parse(content: bytes) -> dict:
     if "length" in decoded_content['info']:
         return_dict['size'] = int(decoded_content['info']['length'])
 
+    if "files" in decoded_content['info']:
+        for file_info in decoded_content['info']['files']:
+            if "length" in file_info:
+                if 'size' in return_dict:
+                    return_dict['size'] += int(file_info['length'])
+                else:
+                    return_dict['size'] = int(file_info['length'])
+
     return return_dict
 
 
