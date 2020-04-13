@@ -93,7 +93,7 @@ def _argument_maxdate(parser):
 
 
 def _argument_tracker(parser):
-    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=["ygg"], required=True)
+    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=["ygg", "yts"], required=True)
 
 
 def _argument_indexer(parser):

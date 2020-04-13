@@ -158,4 +158,4 @@ class TorrentFile(Torrent):
         return super().__init__(**torrents_args)
 
     def __getattr__(self, attr):
-        return self._extras.get(attr, None)
+        return self.extras.get(attr, None)

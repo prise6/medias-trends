@@ -1,10 +1,10 @@
 import logging
 from mediastrends.database.peewee.PDbManager import PDbManager
-from mediastrends import config, db_factory, CATEGORY_NAME
-import mediastrends.ygg as ygg
+from mediastrends import config, db_factory
 from mediastrends.torznab.TorznabClient import TorznabJackettClient
 from mediastrends.torznab.TorznabRSS import TorznabJackettRSS
 from mediastrends.ygg.YggPage import YggPage
+from mediastrends.torrent.Tracker import ygg_tracker, yts_tracker, Tracker
 
 logger = logging.getLogger(__name__)
 
@@ -16,49 +16,42 @@ def add_torrents(test, indexer: str, category: list = None, **kwargs):
 
     assert category is not None
 
+    jackett_client = TorznabJackettClient(config)
+    tracker = None
     for c in category:
         if indexer == 'yggtorrent':
-            _add_ygg_torrents(c)
+            jackett_client.indexer = 'yggtorrent'
+            jackett_client.action = 'search'
+            tracker = ygg_tracker
+            if c == "movies":
+                jackett_client.add_param('cat', 102183)
+            if c == "series":
+                jackett_client.add_param('cat', 102185)
+        if indexer == 'yts':
+            jackett_client.indexer = 'yts'
+            tracker = yts_tracker
+            jackett_client.action = 'search'
+            if c == "movies":
+                jackett_client.add_param('cat', 2000)
 
+        _add_torrents_with_jackett(jackett_client, tracker)
     return
 
 
-def _add_ygg_torrents(category: str):
-
-    assert category in CATEGORY_NAME
-    assert category == 'movies'
-
-    jackett_client = TorznabJackettClient(config)
-    jackett_client.indexer = 'yggtorrent'
-    jackett_client.action = 'search'
-    jackett_client.add_param('cat', 102183)
-
+def _add_torrents_with_jackett(jackett_client: TorznabJackettClient, tracker: Tracker):
     rss_content = jackett_client.get_rss_content()
     rss_parser = TorznabJackettRSS(rss_content)
     rss_parser.process_items()
 
+    _N_ITEMS = len(rss_parser.items)
+
+    if _N_ITEMS == 0:
+        logger.warning("RSS feed is empty")
     db = db_factory.get_instance()
     with db:
-        for el in rss_parser.items:
-            ygg_page = YggPage(el.get('guid'))
-            ygg_torrent = el.to_torrent_file()
-            print(ygg_torrent)
-            PDbManager.save_page(ygg_page, ygg_torrent, ygg.tracker)
+        for idx, el in enumerate(rss_parser.items):
+            logger.debug("---> Torznab element %s/%s ... " % (idx + 1, _N_ITEMS))
+            page = YggPage(el.get('guid'))
+            torrent_file = el.to_torrent_file()
+            PDbManager.save_page(page, torrent_file, tracker)
     return
-    # rss_file = "rss_%s" % category
-
-    # ygg_rss = ygg.rss_from_feedparser(config.get('ygg', rss_file))
-    # _N_ITEMS = len(ygg_rss.items)
-
-    # if _N_ITEMS == 0:
-    #     logger.warning("RSS feed is empty")
-    # db_page = None
-    # db = db_factory.get_instance()
-    # with db:
-    #     for idx, item in enumerate(ygg_rss.items):
-    #         logger.debug("---> RSS item %s/%s ... " % (idx + 1, _N_ITEMS))
-    #         ygg_page = ygg.page_from_rss_item(ygg_rss, idx, True)
-    #         ygg_torrent = ygg.torrent_from_page(ygg_page)
-
-    #         db_page = PDbManager.save_page(ygg_page, ygg_torrent, ygg.tracker)
-    # return db_page
