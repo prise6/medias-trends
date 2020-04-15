@@ -111,13 +111,15 @@ class TorrentFile(Torrent):
 
     @resource.setter
     def resource(self, resource):
+        if resource is None:
+            raise ValueError("Resource cannot be None")
         self._resource = resource
         return self
 
     @property
     def content(self):
         if not self._content:
-            self.content = tools_tf.read_resource(self._resource)
+            self.content = tools_tf.read_resource(self.resource)
         return self._content
 
     @content.setter

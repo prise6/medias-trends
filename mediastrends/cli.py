@@ -195,7 +195,7 @@ class TorrentsAddParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.add_torrents(**kwargs)
+        tasks.torrents_add(**kwargs)
 
 
 class TorrentsStatsParser(AbstractParser):

@@ -5,6 +5,8 @@ notes.txt
 scripts/draft.py
 
 config/*.ini
+config/indexers.yaml
+config/trackers.yaml
 
 data/*
 !data/.gitkeep

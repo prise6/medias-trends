@@ -10,7 +10,7 @@ import struct
 import socket
 import requests
 from typing import List
-from mediastrends import config
+from mediastrends import config, trackers_config
 import torrent_parser as tp
 
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ class UdpTracker(Tracker):
         super().__init__(scheme, netloc, path, name)
         self._timeout = 10
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.query_tracker('CONNECT')
+        # self.query_tracker('CONNECT')
 
     def build_header(self, action: str = None):
         self._headers['transaction_id'] = random.randint(0, 1 << 32 - 1)
@@ -224,20 +224,42 @@ class UdpTracker(Tracker):
 # class instanciation
 #
 
-def tracker_from_url(url: str, name: str):
-    url_split = urllib.parse.urlsplit(url)
+def tracker_from_url(url, name: str) -> Tracker:
+    if not isinstance(url, urllib.parse.SplitResult):
+        url = urllib.parse.urlsplit(url)
     _cls = Tracker
-    if url_split[0] in ['http', 'https']:
+    if url[0] in ['http', 'https']:
         _cls = HttpTracker
-    if url_split[0] in ['udp']:
+    if url[0] in ['udp']:
         _cls = UdpTracker
 
-    return _cls(url_split[0], url_split[1], url_split[2], name)
+    return _cls(url[0], url[1], url[2], name)
+
+
+def tracker_from_config_by_name(name: str) -> Tracker:
+    if name in trackers_config:
+        return tracker_from_url(urllib.parse.SplitResult(
+            trackers_config.get(name).get('scheme'),
+            trackers_config.get(name).get('netloc'),
+            None,
+            None,
+            None,
+        ))
+    return None
+
+
+def tracker_from_config_by_url(url: str) -> Tracker:
+    tracker = tracker_from_url(url, "tbd")
+    for name, infos in trackers_config.items():
+        if infos.get('active', False) and infos.get('scheme') == tracker.scheme and infos.get('netloc') == tracker.netloc:
+            tracker._name = name
+            return tracker
+    return None
+
 
 #
 # Object instanciation
 #
-
 
 ygg_tracker = HttpTracker(
     scheme=config.get('ygg', 'scheme'),

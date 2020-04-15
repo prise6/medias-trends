@@ -1,4 +1,5 @@
 import os
+import yaml
 import configparser
 from configparser import ExtendedInterpolation
 
@@ -56,3 +57,18 @@ def look_for_package_config_file():
     if os.path.exists(theorical_conf):
         return theorical_conf
     return None
+
+
+def read_trackers_indexers_file(config, type_: str):
+    yaml_filepath = None
+    if type_ == 'indexers':
+        yaml_filepath = config.get('indexers', 'indexer_file')
+    elif type_ == 'trackers':
+        yaml_filepath = config.get('trackers', 'tracker_file')
+    else:
+        raise ValueError("Type_ argument must be indexers or trackers (%s)" % type_)
+
+    with open(yaml_filepath, 'r') as ymlfile:
+        output = yaml.safe_load(ymlfile).get(type_)
+
+    return output

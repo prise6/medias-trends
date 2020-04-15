@@ -122,7 +122,6 @@ def read_resource(resource, headers: dict = {}) -> bytes:
     Returns:
         bytes: binary content
     """
-
     if isinstance(resource, str):
         if urllib.parse.urlsplit(resource)[0] in ['http', 'https', 'file', 'ftp']:
             return read_from_url(resource, headers=headers)

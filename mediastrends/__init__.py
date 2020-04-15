@@ -16,6 +16,8 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 #
 
 config = cfg.populate_config(cfg.init_config(), reload_=False)
+trackers_config = cfg.read_trackers_indexers_file(config, 'trackers')
+indexers_config = cfg.read_trackers_indexers_file(config, 'indexers')
 
 #
 # Database
