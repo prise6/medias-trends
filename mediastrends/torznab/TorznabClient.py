@@ -28,8 +28,6 @@ class TorznabJackettClient():
 
     @indexer.setter
     def indexer(self, indexer: str):
-        if indexer not in self._config.get('indexers', 'authorized'):
-            raise NotImplementedError("%s indexer not authorized")
         self._indexer = indexer
 
     @property
@@ -88,7 +86,7 @@ class TorznabJackettClient():
             except ValueError:
                 pass
             logger.error('An error occured while contacting jacket api: %s', error)
-            return self._rss_content
+            return None
 
         return self._response.text
 

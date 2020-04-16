@@ -136,7 +136,7 @@ class PDbManager(DbManager):
         if created:
             logger.debug("Page has been created")
 
-        return db_page
+        return db_page, created
 
     def save_torrent_tracker(torrent: Torrent, tracker: Tracker):
         db_tracker = PDbManager.tracker_to_db(tracker)

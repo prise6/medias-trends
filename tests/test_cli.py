@@ -13,23 +13,45 @@ class TestCLI(unittest.TestCase):
     TASKS = ['torrents_add', 'compute_trending', 'get_stats', 'update_status', 'get_trending',
              'reset_tables', 'reset_database', 'sqlite_backup', 'load_sqlite_backup']
 
-    @classmethod
-    def setUpClass(cls):
-        cls.patches = []
-        cls.mocks = {}
-        for task in cls.TASKS:
+    INDEXERS_CONFIG = {
+        "indexer_1": {
+            "movies": {
+                "active": True,
+                "action": "search",
+                "params": {"cat": 102183}
+            },
+            "wrong_cat": {
+                "active": True
+            }
+        },
+        "indexer_2": {
+            "series": {
+                "active": True,
+                "action": "search",
+                "params": {"cat": 102185}
+            }
+        },
+    }
+
+    def setUp(self):
+        self.patches = []
+        self.mocks = {}
+        for task in self.TASKS:
             current_patch = patch('mediastrends.tasks.%s' % task)
-            cls.patches.append(current_patch)
-            cls.mocks[task] = current_patch.start()
+            self.patches.append(current_patch)
+            self.mocks[task] = current_patch.start()
 
         populate_config_patch = patch('mediastrends.tools.config.populate_config')
-        cls.patches.append(populate_config_patch)
-        cls.mocks['populate_config'] = populate_config_patch.start()
+        self.patches.append(populate_config_patch)
+        self.mocks['populate_config'] = populate_config_patch.start()
+
+        indexers_patch = patch.dict('mediastrends.indexers_config', self.INDEXERS_CONFIG, clear=True)
+        self.patches.append(indexers_patch)
+        self.mocks['indexers_patch'] = indexers_patch.start()
 
     @classmethod
     def tearDownClass(cls):
-        for p in cls.patches:
-            p.stop()
+        patch.stopall()
 
     def test_torrents_trends_get_parser(self):
         parser = cli.TorrentsTrendsGetParser()
@@ -49,11 +71,11 @@ class TestCLI(unittest.TestCase):
 
     def test_torrents_add_parser(self):
         parser = cli.TorrentsAddParser()
-        args = '-c movies -t ygg'.split(' ')
+        args = '-c movies -i indexer_1'.split(' ')
         parser.execute(args)
         self.assertTrue(self.mocks['torrents_add'].called)
         self.assertEqual(parser.parsed_args_dict.get('category'), ['movies'])
-        self.assertEqual(parser.parsed_args_dict.get('tracker_name'), 'ygg')
+        self.assertEqual(parser.parsed_args_dict.get('indexer'), 'indexer_1')
 
     def test_torrents_stats_parser(self):
         parser = cli.TorrentsStatsParser()
@@ -96,19 +118,21 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(self.mocks['load_sqlite_backup'].called)
         self.assertEqual(parser.parsed_args_dict.get('backup_date'), '20200401-1100')
 
-    def test_main_cli_correct(self):
+    @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
+    def test_main_cli_correct(self, mock):
         parser = cli.MediasTrendsCLI()
-        args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -t ygg'
+        args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -i indexer_1'
         parser.execute(args.split(' '))
         self.assertTrue(self.mocks['torrents_add'].called)
         self.assertEqual(parser.parsed_args_dict.get('verbose'), 5)
         self.assertEqual(parser.parsed_args_dict.get('config_dir'), './configdir')
         self.assertEqual(parser.parsed_args_dict.get('mode'), 'test')
 
-    def test_main_cli_task_not_defined(self):
+    @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
+    def test_main_cli_task_not_defined(self, mock):
         parser = cli.MediasTrendsCLI()
         self.mocks['torrents_add'].side_effect = [NotImplementedError(), None]
-        args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -t ygg'.split(' ')
+        args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -i indexer_1'.split(' ')
         with self.assertRaises(NotImplementedError):
             parser.execute(args)
 

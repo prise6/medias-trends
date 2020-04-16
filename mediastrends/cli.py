@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 import argparse
 import datetime
-from mediastrends import config
+from mediastrends import config, trackers_config, indexers_config, db_factory
 import mediastrends.tasks as tasks
 import mediastrends.tools.config as cfg
 
@@ -97,7 +97,7 @@ def _argument_tracker(parser):
 
 
 def _argument_indexer(parser):
-    parser.add_argument("-i", "--indexer", help="Indexer ID", type=str, choices=["yggtorrent", "yts"], required=True)
+    parser.add_argument("-i", "--indexer", help="Indexer ID", type=str, choices=indexers_config.keys(), required=True)
 
 
 def _arugment_tables(parser):
@@ -299,6 +299,11 @@ class MediasTrendsCLI(AbstractParser):
         mode = parsed_args_dict.get('mode', None)
         if config_dir or mode:
             cfg.populate_config(config=config, user_dir_config=config_dir, mode=mode, reload_=True)
+            indexers_config.clear()
+            indexers_config.update(cfg.read_indexers_file(config))
+            trackers_config.clear()
+            trackers_config.update(cfg.read_trackers_file(config))
+            db_factory.defaut_instance = config.get('db', 'database')
 
         super().execute(args)
 

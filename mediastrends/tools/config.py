@@ -36,6 +36,7 @@ def populate_config(config, user_dir_config=None, mode=None, reload_=True):
 
     if user_config:
         config.read(user_config)
+
     return config
 
 
@@ -59,7 +60,15 @@ def look_for_package_config_file():
     return None
 
 
-def read_trackers_indexers_file(config, type_: str):
+def read_trackers_file(config):
+    return _read_trackers_indexers_file(config, 'trackers')
+
+
+def read_indexers_file(config):
+    return _read_trackers_indexers_file(config, 'indexers')
+
+
+def _read_trackers_indexers_file(config, type_: str):
     yaml_filepath = None
     if type_ == 'indexers':
         yaml_filepath = config.get('indexers', 'indexer_file')

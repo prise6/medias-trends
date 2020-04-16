@@ -17,7 +17,8 @@ class TorrentsAdd(unittest.TestCase):
                     "params": {"cat": 102183}
                 },
                 "wrong_cat": {
-                    "active": True
+                    "active": False,
+                    "action": "search"
                 }
             },
             "indexer_2": {
@@ -51,6 +52,10 @@ class TorrentsAdd(unittest.TestCase):
         cls.trackers_patch = patch.dict('mediastrends.trackers_config', trackers_config, clear=True)
         cls.trackers_mock = cls.trackers_patch.start()
 
+    @classmethod
+    def tearDownClass(cls):
+        patch.stopall()
+
     def setUp(self):
         self.result_torznab_input = {
             'title': 'Titre',
@@ -65,16 +70,18 @@ class TorrentsAdd(unittest.TestCase):
     def test_create_torznab_from_cli_params(self):
         client = create_torznab_from_cli_params("indexer_1", "movies")
         self.assertEqual(client.action, "search")
+        self.assertEqual(client.indexer, "indexer_1")
         self.assertEqual(client._params.get('cat'), 102183)
 
         client = create_torznab_from_cli_params("indexer_2", "series")
         self.assertEqual(client.action, "search")
+        self.assertEqual(client.indexer, "indexer_2")
         self.assertEqual(client._params.get('cat'), 102185)
 
         with self.assertRaises(Exception):
             client = create_torznab_from_cli_params("yggtorren", "movies")
         with self.assertRaises(Exception):
-            client = create_torznab_from_cli_params("yggtorrent", "wrong_cat")
+            client = create_torznab_from_cli_params("indexer_1", "wrong_cat")
 
     def test_elements_from_torznab_result(self):
         input_ = self.result_torznab_input
