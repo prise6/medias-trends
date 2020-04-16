@@ -2,7 +2,7 @@ Cython==0.29.16
 bittorrent-tracker-scraping==0.1.0
 torrent_parser
 feedparser==5.2.1
-dateutil==2.8.1
+python-dateutil==2.8.1
 beautifulsoup4==4.8.2
 requests==2.23.0
 PyYAML==5.3
