@@ -77,7 +77,10 @@ def _read_trackers_indexers_file(config, type_: str):
     else:
         raise ValueError("Type_ argument must be indexers or trackers (%s)" % type_)
 
-    with open(yaml_filepath, 'r') as ymlfile:
-        output = yaml.safe_load(ymlfile).get(type_)
-
+    output = {}
+    try:
+        with open(yaml_filepath, 'r') as ymlfile:
+            output = yaml.safe_load(ymlfile).get(type_)
+    except FileNotFoundError:
+        pass
     return output
