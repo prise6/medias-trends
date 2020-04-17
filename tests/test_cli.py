@@ -42,6 +42,24 @@ class TestCLI(unittest.TestCase):
         },
     }
 
+    TRACKERS_CONFIG = {
+        'tracker_1': {
+            'active': True,
+            'scheme': 'http',
+            'netloc': 'netloc:8080',
+        },
+        'tracker_2': {
+            'active': True,
+            'scheme': 'udp',
+            'netloc': 'netloc:6060',
+        },
+        'tracker_3': {
+            'active': False,
+            'scheme': 'udp',
+            'netloc': 'netloc:5217',
+        },
+    }
+
     @classmethod
     def setUpClass(cls):
         cls.patches = []
@@ -58,6 +76,10 @@ class TestCLI(unittest.TestCase):
         indexers_patch = patch.dict('mediastrends.indexers_config', cls.INDEXERS_CONFIG, clear=True)
         cls.patches.append(indexers_patch)
         cls.mocks['indexers_patch'] = indexers_patch.start()
+
+        trackers_patch = patch.dict('mediastrends.trackers_config', cls.TRACKERS_CONFIG, clear=True)
+        cls.patches.append(trackers_patch)
+        cls.mocks['trackers_patch'] = trackers_patch.start()
 
     @classmethod
     def tearDownClass(cls):
@@ -89,11 +111,11 @@ class TestCLI(unittest.TestCase):
 
     def test_torrents_stats_parser(self):
         parser = cli.TorrentsStatsParser()
-        args = '-c movies -t ygg'.split(' ')
+        args = '-c movies -t tracker_1'.split(' ')
         parser.execute(args)
         self.assertTrue(self.mocks['torrents_stats'].called)
         self.assertEqual(parser.parsed_args_dict.get('category'), ['movies'])
-        self.assertEqual(parser.parsed_args_dict.get('tracker_name'), 'ygg')
+        self.assertEqual(parser.parsed_args_dict.get('tracker_name'), 'tracker_1')
 
     def test_torrents_status_parser(self):
         parser = cli.TorrentsStatusParser()
@@ -129,7 +151,8 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(parser.parsed_args_dict.get('backup_date'), '20200401-1100')
 
     @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
-    def test_main_cli_correct(self, mock):
+    @patch('mediastrends.tools.config.read_trackers_file', return_value=TRACKERS_CONFIG)
+    def test_main_cli_correct(self, mock_tr, mock_ix):
         parser = cli.MediasTrendsCLI()
         args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -i indexer_1'
         parser.execute(args.split(' '))
@@ -139,7 +162,8 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(parser.parsed_args_dict.get('mode'), 'test')
 
     @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
-    def test_main_cli_task_not_defined(self, mock):
+    @patch('mediastrends.tools.config.read_trackers_file', return_value=TRACKERS_CONFIG)
+    def test_main_cli_task_not_defined(self, mock_tr, mock_ix):
         parser = cli.MediasTrendsCLI()
         self.mocks['torrents_add'].side_effect = [NotImplementedError(), None]
         args = '-vvvvv --config-dir ./configdir --mode test torrents add -c movies -i indexer_1'.split(' ')
