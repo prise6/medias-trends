@@ -12,3 +12,4 @@ pytz
 pandas==1.0.1
 parse-torrent-name==1.1.1
 bencode.py==2.1.0
+flake8==3.7.9
