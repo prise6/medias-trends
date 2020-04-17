@@ -1,10 +1,16 @@
 import unittest
 import datetime
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, MagicMock
 from mediastrends import db_factory
 from mediastrends.database.peewee.PDbManager import PDbManager
-from mediastrends.tasks.torrents import torrents_add, create_torznab_from_cli_params, elements_from_torznab_result
+from mediastrends.tasks.torrents import (torrents_add,
+                                         create_torznab_from_cli_params,
+                                         elements_from_torznab_result,
+                                         torrents_stats,
+                                         torrents_stats_with_tracker)
 from mediastrends.torznab.TorznabRSS import TorznabJackettResult
+from mediastrends.torrent.Tracker import UdpTracker
+from mediastrends.torrent.Torrent import Torrent
 
 
 class TorentsTasks(unittest.TestCase):
@@ -86,6 +92,9 @@ class TorentsTasks(unittest.TestCase):
         # rss_parser items
         self.rss_parser_items = [TorznabJackettResult(r) for r in self.result_torznab_input]
 
+    def tearDown(self):
+        patch.stopall()
+
 
 class TorrentsAdd(TorentsTasks):
 
@@ -143,7 +152,58 @@ class TorrentsAdd(TorentsTasks):
         self.assertEqual(nb_torrents_added, 0)
 
 
-# class TorrentsStats(TorentsTasks):
-#
-#     def test_torrents_stats(self):
-#         pass
+class TorrentsStats(TorentsTasks):
+
+    def setUp(self):
+        super().setUp()
+
+        # init mock tracker
+        self.result_of_scrape = {'85be94b120becfb44f94f97779c61633c7647629': {
+            'complete': 10,
+            'downloaded': 100,
+            'incomplete': 32,
+        }}
+
+        mock_tracker = UdpTracker(scheme="udp", netloc="netloc:6060", name="tracker_2", path="")
+        # type(mock_tracker).name = PropertyMock(return_value="tracker_name")
+        mock_tracker.scrape = MagicMock(return_value=self.result_of_scrape)
+        self.mock_tracker = mock_tracker
+
+        # init db
+        self.fake_torrent = Torrent(
+            info_hash="85be94b120becfb44f94f97779c61633c7647629",
+            name='Test 1 titre',
+            pub_date=datetime.datetime.now(),
+            size=1220
+        )
+        PDbManager.save_torrent_tracker(self.fake_torrent, self.mock_tracker)
+
+    def test_torrents_stats_with_tracker(self):
+        nb_stats = torrents_stats_with_tracker(self.mock_tracker)
+        self.assertEqual(nb_stats, 1)
+        stats_collec = PDbManager.get_stats_collection_by_torrent(self.fake_torrent)
+        self.assertEqual(nb_stats, stats_collec.count())
+        self.assertEqual(stats_collec.stats[0].leechers, 32)
+        self.assertEqual(stats_collec.stats[0].seeders, 10)
+        self.assertEqual(stats_collec.stats[0].completed, 100)
+        self.assertEqual(stats_collec.stats[0].torrent.name, self.fake_torrent.name)
+        self.assertEqual(stats_collec.stats[0].tracker.name, self.mock_tracker.name)
+
+        nb_stats = torrents_stats_with_tracker(self.mock_tracker, [0])
+        self.assertEqual(nb_stats, 0)
+
+        nb_stats = torrents_stats_with_tracker(self.mock_tracker, [])
+        self.assertEqual(nb_stats, 0)
+
+    @patch('mediastrends.tasks.torrents.torrents_stats_with_tracker', return_value=1)
+    def test_torrents_stats(self, mock_fn):
+        nb_stats = torrents_stats(False, "tracker_1", category=['movies'])
+        self.assertEqual(nb_stats, 1)
+        nb_stats = torrents_stats(False, "tracker_3", category=['movies'])
+        self.assertEqual(nb_stats, 0)
+        with self.assertRaises(AssertionError):
+            nb_stats = torrents_stats(False, "tracker_xx", category=['movies'])
+        with self.assertRaises(KeyError):
+            nb_stats = torrents_stats(False, "tracker_1", category=['wrong_category'])
+        with self.assertRaises(AssertionError):
+            nb_stats = torrents_stats(False, "tracker_1", category='not_a_list')

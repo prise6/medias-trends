@@ -105,13 +105,14 @@ def elements_from_torznab_result(result: TorznabJackettResult) -> dict:
 
 
 # region
-def torrents_stats(test, tracker_name: str, category, **kwargs):
+def torrents_stats(test, tracker_name: str, category: list = None, **kwargs):
     nb_stats = 0
     if test:
         logger.debug("torrents_stats task")
         return nb_stats
 
     assert tracker_name in trackers_config
+    assert isinstance(category, list)
 
     if not trackers_config.get(tracker_name).get('active', False):
         return nb_stats
@@ -119,7 +120,7 @@ def torrents_stats(test, tracker_name: str, category, **kwargs):
     tracker = tracker_from_config_by_name(tracker_name)
 
     if category is not None:
-        category = [CATEGORY_NAME.get(c) for c in category]
+        category = [CATEGORY_NAME[c] for c in category]
 
     nb_stats = torrents_stats_with_tracker(tracker, category)
 
