@@ -27,7 +27,9 @@ class ClassicTrendsEngine(TrendsEngine):
         # stats_collection.create_dataframe()
         dataframe = stats_collection.dataframe
 
-        leecher_trend = dataframe.groupby(pd.Grouper(freq='D')).mean().tail(1).leechers.item()
-        completed_trend = dataframe.groupby([pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean().groupby('valid_date').sum().tail(1).completed.item()
+        # leecher_trend = dataframe.groupby(pd.Grouper(freq='D')).mean().tail(1).leechers.item()
+        intermediaire = dataframe.groupby([pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean().groupby('valid_date').mean().tail(1)
+        completed_trend = intermediaire.completed.item()
+        leecher_trend = intermediaire.leechers.item()
 
         return np.around(0.5 * leecher_trend + 0.5 * completed_trend, 2)

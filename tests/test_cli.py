@@ -48,10 +48,8 @@ class TestCLI(unittest.TestCase):
         cls.mocks = {}
         for task in cls.TASKS:
             current_patch = patch('%s' % task)
-            print(current_patch)
             cls.patches.append(current_patch)
             cls.mocks[task.split('.').pop()] = current_patch.start()
-            print(cls.mocks[task.split('.').pop()])
 
         populate_config_patch = patch('mediastrends.tools.config.populate_config')
         cls.patches.append(populate_config_patch)

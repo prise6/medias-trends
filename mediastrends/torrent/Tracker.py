@@ -44,7 +44,7 @@ class Tracker:
 
     @property
     def path(self):
-        return self._path
+        return self._path if self._path else ''
 
     @property
     def name(self):
@@ -53,7 +53,7 @@ class Tracker:
     @property
     def url(self):
         return urllib.parse.urlunsplit(
-            urllib.parse.SplitResult(self._scheme, self._netloc, self._path, None, None)
+            urllib.parse.SplitResult(self.scheme, self.netloc, self.path, None, None)
         )
 
     def build_header(self, action: str = None):
@@ -137,11 +137,11 @@ class UdpTracker(Tracker):
     def __init__(self, scheme, netloc, path, name):
         super().__init__(scheme, netloc, path, name)
         self._timeout = 10
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._sock = None
 
     def build_header(self, action: str = None):
         self._headers['transaction_id'] = random.randint(0, 1 << 32 - 1)
-        if 'connection_id' not in self._headers:
+        if self._ACTIONS[action] == 0:
             self._headers['connection_id'] = 0x41727101980
 
     def build_request(self, action: str = None, params: dict = None):
@@ -156,6 +156,8 @@ class UdpTracker(Tracker):
             params = self.netloc.split(':')
             params[1] = int(params[1])
             params = tuple(params)
+            # create socket
+            self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self._request = {
             'payload': payload,
@@ -246,10 +248,10 @@ def tracker_from_config_by_name(name: str) -> Tracker:
         return tracker_from_url(urllib.parse.SplitResult(
             trackers_config.get(name).get('scheme'),
             trackers_config.get(name).get('netloc'),
+            trackers_config.get(name).get('path'),
             None,
             None,
-            None,
-        ))
+        ), name)
     return None
 
 

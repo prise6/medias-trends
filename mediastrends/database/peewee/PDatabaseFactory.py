@@ -18,7 +18,7 @@ class PDatabaseFactory:
         if instance not in self.instances.keys():
             if instance == 'sqlite':
                 instance_obj = CSqliteExtDatabase(self.sqlite_db_path)
-            if instance == 'sqlite-app-test':
+            elif instance == 'sqlite-app-test':
                 PACKAGR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
                 instance_obj = CSqliteExtDatabase(os.path.join(PACKAGR_DIR, 'mediastrends_test.db'))
             elif instance == 'memory':
