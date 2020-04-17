@@ -16,8 +16,6 @@ services:
       - "traefik.port=8888"
     env_file:
       - .env
-    environment:
-      - MODE=dev
     networks:
       - default
       - netproxy
@@ -32,6 +30,37 @@ services:
       - "traefik.main.frontend.entryPoints=http"
     environment:
       - SQLITE_DATABASE=database_dev.db
+
+  airflow:
+    image: puckel/docker-airflow
+    command: webserver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8080"
+      - "traefik.main.frontend.entryPoints=http"
+    ports:
+      - 127.0.0.1:18080:8080
+    networks:
+     - default
+     - netproxy
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: mediastrends-jackett-dev
+    env_file:
+      - .env
+    volumes:
+      - ${PWD}/jackett/config:/config
+      - ${PWD}/jackett/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=9117"
+      - "traefik.main.frontend.entryPoints=http"
+    ports:
+      - 127.0.0.1:19117:9117
+    networks:
+      - default
+      - netproxy
 
 networks:
   netproxy:

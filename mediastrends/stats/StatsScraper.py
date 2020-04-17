@@ -1,11 +1,10 @@
 import logging
-import urllib.parse
 from retry import retry
 import requests
 
 from mediastrends import config
 import mediastrends.tools as tools
-from mediastrends.torrent.Tracker import Tracker
+from mediastrends.torrent.Tracker import Tracker, HttpTracker, UdpTracker
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
 
@@ -21,7 +20,7 @@ class StatsScraper():
     _DELAY = config.getint('retry', 'delay')
 
     def __init__(self, tracker: Tracker):
-        self._tracker = tracker
+        self.tracker = tracker
         self._torrents_lookup = {}
         self._info_hashes = []
         self._parsed_content = {}
@@ -32,6 +31,8 @@ class StatsScraper():
 
     @tracker.setter
     def tracker(self, tracker: Tracker):
+        if not (isinstance(tracker, HttpTracker) or isinstance(tracker, UdpTracker)):
+            raise TypeError('Tracker object must be instance of HttpTracker or UdpTracker')
         self._tracker = tracker
 
     @property
@@ -41,7 +42,6 @@ class StatsScraper():
     @torrents.setter
     def torrents(self, torrents: list):
         self._torrents_lookup = {t.info_hash: t for t in torrents}
-        self._info_hashes = self.extract_info_hashes()
         self._parsed_content = {}
 
     @property
@@ -54,25 +54,14 @@ class StatsScraper():
             completed=c.get('downloaded')
         ) for info_hash, c in self._parsed_content.items()])
 
-    def extract_info_hashes(self):
-        return [('info_hash', bytes.fromhex(info_hash)) for info_hash in self._torrents_lookup.keys()]
-
-    def url(self, info_hashes: list):
-        url_split = urllib.parse.urlsplit(self._tracker.url)
-        url_split = list(url_split)
-        url_split[3] = urllib.parse.urlencode(info_hashes)
-        url = urllib.parse.urlunsplit(url_split)
-
-        return url
-
-    @retry(requests.exceptions.RequestException, tries=_RETRIES, delay=_DELAY, jitter=(3, 10), logger=logger)
+    @retry((requests.exceptions.RequestException, OSError), tries=_RETRIES, delay=_DELAY, jitter=(3, 10), logger=logger)
     def run(self, info_hashes: list):
-        url = self.url(info_hashes)
-        content = tools.get_request_content(url, self._HEADERS)
-        self._parsed_content.update(tools.parse_bencode_tracker('scrape', content))
+        content_infos = self._tracker.scrape(info_hashes)
+        self._parsed_content.update(content_infos)
 
     def run_by_batch(self):
-        for info_hashes in tools.batch(self._info_hashes, self._BATCH_SIZE):
+        full_infos_hashes_list = list(self._torrents_lookup.keys())
+        for info_hashes in tools.batch(full_infos_hashes_list, self._BATCH_SIZE):
             try:
                 self.run(info_hashes)
             except requests.exceptions.RequestException as err:

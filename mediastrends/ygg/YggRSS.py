@@ -1,3 +1,7 @@
+"""
+DEPRECATED : use of Jackett + Torznab specification
+"""
+
 import feedparser
 import re
 from datetime import datetime

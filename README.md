@@ -66,14 +66,11 @@ database=sqlite
 path=${directory:sqlite}/database.db
 backup_dir=${directory:data}
 
-[ygg]
-scheme=http
-domain=ygg.peer2peer.cc
-port=8080
-netloc=${domain}:${port}
-path=
-rss_movies=
-rss_series=
+[indexers]
+indexer_file=
+
+[trackers]
+tracker_file=
 
 [requests]
 user_agent=
@@ -88,6 +85,15 @@ new_delay=3
 
 [trends]
 tau=0.2
+
+[jackettapi]
+scheme=http
+domain=jackett
+port=9117
+netloc=${domain}:${port}
+path=api/v2.0/indexers/{indexer}/results/torznab/api
+apikey=
+
 ```
 
 user config file have to be named with this pattern: `mediastrends.MODE.ini`, `MODE` is the value of `MEDIASTRENDS_MODE` global var.
@@ -99,3 +105,69 @@ user config file have to be named with this pattern: `mediastrends.MODE.ini`, `M
 3. `~` home directory
 4. `/etc/mediastrends` directory
 
+
+### YAML file
+
+#### indexers.yaml
+
+This file lists indexer website. 
+
+fill the filepath of this file in config file:
+```ini
+[indexers]
+indexer_file=
+```
+
+Example of content of the file:
+
+```yaml
+indexers:
+  indexer_1: # /!\ must be a tracker known by jackett
+    cat_1:
+      active: True
+      action: search
+      params:
+        cat: 2000
+    cat_2:
+      active: True
+      action: search
+      params:
+        cat: 5000
+  indexer_2:
+    movies:
+      active: True
+      action: search
+```
+
+#### trackers.yaml
+
+This file lists bittorrent tracker to scrape infos.
+
+fill the filepath of this file in config file:
+```ini
+# ...
+[trackers]
+tracker_file=
+# ...
+```
+
+Example of content of the file:
+
+```yaml
+trackers:
+  tracker_1:
+    active: True
+    scheme: http
+    netloc: domain:port
+    path: 
+  
+  tracker_2:
+    active: True
+    scheme: udp
+    netloc: domain:port
+    path: 
+```
+
+### Usage
+
+To Do

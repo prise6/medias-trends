@@ -12,8 +12,6 @@ def get_request_(url: str, headers):
     with requests.get(url, headers=headers) as response:
         logger.debug('--> status code: %s' % (str(response.status_code)))
         if not response.status_code == requests.codes.ok:
-            return None
-        else:
             response.raise_for_status()
     return response
 

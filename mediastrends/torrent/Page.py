@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 import logging
 import datetime
 from retry.api import retry_call
@@ -64,41 +64,33 @@ class Page(ABC):
         return self
 
     @property
-    @abstractmethod
     def info_hash(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def pub_date(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def name(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def size(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def seeders(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def leechers(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def completed(self):
-        return
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def category(self):
-        return
+        raise NotImplementedError

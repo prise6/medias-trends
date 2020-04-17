@@ -5,6 +5,8 @@ notes.txt
 scripts/draft.py
 
 config/*.ini
+config/indexers.yaml
+config/trackers.yaml
 
 data/*
 !data/.gitkeep
@@ -14,6 +16,9 @@ logs/*
 
 sqlite/*
 !sqlite/.gitkeep
+
+jackett/*
+!jackett/.gitkeep
 
 docker/Makefile
 docker/requirements.txt

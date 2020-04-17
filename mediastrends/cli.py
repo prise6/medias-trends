@@ -3,9 +3,11 @@ import logging
 from abc import ABC, abstractmethod
 import argparse
 import datetime
-from mediastrends import config
-import mediastrends.tasks as tasks
+
 import mediastrends.tools.config as cfg
+from mediastrends import config, trackers_config, indexers_config, db_factory
+from mediastrends.tasks.torrents import torrents_add, torrents_stats, compute_trending, update_status, get_trending
+from mediastrends.tasks.database import sqlite_backup, backup_date, reset_database, reset_tables, load_sqlite_backup
 
 """
 mediastrends (CLI)
@@ -93,7 +95,11 @@ def _argument_maxdate(parser):
 
 
 def _argument_tracker(parser):
-    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=["ygg"], required=True)
+    parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=["ygg", "yts"], required=True)
+
+
+def _argument_indexer(parser):
+    parser.add_argument("-i", "--indexer", help="Indexer ID", type=str, choices=indexers_config.keys(), required=True)
 
 
 def _arugment_tables(parser):
@@ -101,7 +107,7 @@ def _arugment_tables(parser):
 
 
 def _argument_backup_date(parser):
-    parser.add_argument("-d", "--backup-date", help="Backup date: YYYYMMDD-HHMM", type=tasks.backup_date)
+    parser.add_argument("-d", "--backup-date", help="Backup date: YYYYMMDD-HHMM", type=backup_date)
 
 
 def _argument_no_backup(parser):
@@ -168,7 +174,7 @@ class TorrentsTrendsGetParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.get_trending(**kwargs)
+        get_trending(**kwargs)
 
 
 class TorrentsTrendsComputeParser(AbstractParser):
@@ -180,18 +186,18 @@ class TorrentsTrendsComputeParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.compute_trending(**kwargs)
+        compute_trending(**kwargs)
 
 
 class TorrentsAddParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser, required=True)
-        _argument_tracker(self.parser)
+        _argument_indexer(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.add_torrents(**kwargs)
+        torrents_add(**kwargs)
 
 
 class TorrentsStatsParser(AbstractParser):
@@ -202,7 +208,7 @@ class TorrentsStatsParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.get_stats(**kwargs)
+        torrents_stats(**kwargs)
 
 
 class TorrentsStatusParser(AbstractParser):
@@ -212,7 +218,7 @@ class TorrentsStatusParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.update_status(**kwargs)
+        update_status(**kwargs)
 
 
 class DatabaseResetTableParser(AbstractParser):
@@ -223,7 +229,7 @@ class DatabaseResetTableParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.reset_tables(**kwargs)
+        reset_tables(**kwargs)
 
 
 class DatabaseResetDBParser(AbstractParser):
@@ -233,7 +239,7 @@ class DatabaseResetDBParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.reset_database(**kwargs)
+        reset_database(**kwargs)
 
 
 class DatabaseBackupSaveParser(AbstractParser):
@@ -242,7 +248,7 @@ class DatabaseBackupSaveParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.sqlite_backup(**kwargs)
+        sqlite_backup(**kwargs)
 
 
 class DatabaseBackupLoadParser(AbstractParser):
@@ -252,7 +258,7 @@ class DatabaseBackupLoadParser(AbstractParser):
         _argument_test(self.parser)
 
     def task(self, **kwargs):
-        tasks.load_sqlite_backup(**kwargs)
+        load_sqlite_backup(**kwargs)
 
 # endregion
 
@@ -295,6 +301,11 @@ class MediasTrendsCLI(AbstractParser):
         mode = parsed_args_dict.get('mode', None)
         if config_dir or mode:
             cfg.populate_config(config=config, user_dir_config=config_dir, mode=mode, reload_=True)
+            indexers_config.clear()
+            indexers_config.update(cfg.read_indexers_file(config))
+            trackers_config.clear()
+            trackers_config.update(cfg.read_trackers_file(config))
+            db_factory.defaut_instance = config.get('db', 'database')
 
         super().execute(args)
 

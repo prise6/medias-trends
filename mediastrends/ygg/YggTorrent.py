@@ -1,3 +1,7 @@
+"""
+DEPRECATED : use of Jackett + Torznab specification
+"""
+
 from mediastrends.torrent.Torrent import Torrent
 from .YggPage import YggPage
 
