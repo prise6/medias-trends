@@ -8,9 +8,19 @@ from mediastrends.stats.StatsCollection import StatsCollection
 
 
 class DbManager(ABC):
+    """Need to be more abstract if not using peewee
+    """
 
     def __init__(self, config):
         self.cfg = config
+
+    @abstractstaticmethod
+    def create_database(db_connection):
+        return
+
+    @abstractstaticmethod
+    def drop_database(db_connection):
+        return
 
     @abstractstaticmethod
     def db_to_torrent(db_torrent):

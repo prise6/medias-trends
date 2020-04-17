@@ -19,9 +19,15 @@ logger = logging.getLogger(__name__)
 
 class PDbManager(DbManager):
 
-    def __init__(self, config, db):
-        self.db = db
-        super().__init__(config)
+    #
+    # Create DB
+    #
+
+    def create_database(db_connection):
+        db_connection.create_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends], safe=True)
+
+    def drop_database(db_connection):
+        db_connection.drop_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends])
 
     #
     # DB to object
@@ -164,7 +170,7 @@ class PDbManager(DbManager):
         if created:
             logger.debug("Stats for %s saved (%s)", stats.torrent.name, stats.valid_date)
 
-        return db_stats
+        return db_stats, created
 
     def save_stats_collection_as_trends(stats_collection: StatsCollection):
         for torrent in stats_collection.torrents:

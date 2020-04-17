@@ -138,7 +138,6 @@ class UdpTracker(Tracker):
         super().__init__(scheme, netloc, path, name)
         self._timeout = 10
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # self.query_tracker('CONNECT')
 
     def build_header(self, action: str = None):
         self._headers['transaction_id'] = random.randint(0, 1 << 32 - 1)
@@ -219,6 +218,12 @@ class UdpTracker(Tracker):
 
         return self._response['parsed']
 
+    def scrape(self, info_hashes: List[str]):
+        self.query_tracker('CONNECT')
+        parsed_reponse = super().scrape(info_hashes)
+        self._sock.close()
+        return parsed_reponse
+
 
 #
 # class instanciation
@@ -255,22 +260,3 @@ def tracker_from_config_by_url(url: str) -> Tracker:
             tracker._name = name
             return tracker
     return None
-
-
-#
-# Object instanciation
-#
-
-ygg_tracker = HttpTracker(
-    scheme=config.get('ygg', 'scheme'),
-    netloc=config.get('ygg', 'netloc'),
-    path=config.get('ygg', 'path'),
-    name='ygg'
-)
-
-yts_tracker = UdpTracker(
-    scheme=config.get('yts', 'scheme'),
-    netloc=config.get('yts', 'netloc'),
-    path=config.get('yts', 'path'),
-    name='yts'
-)
