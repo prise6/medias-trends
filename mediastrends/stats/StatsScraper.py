@@ -61,6 +61,7 @@ class StatsScraper():
 
     def run_by_batch(self):
         full_infos_hashes_list = list(self._torrents_lookup.keys())
+        logger.debug("Run by batch of %s" % self._BATCH_SIZE)
         for info_hashes in tools.batch(full_infos_hashes_list, self._BATCH_SIZE):
             try:
                 self.run(info_hashes)

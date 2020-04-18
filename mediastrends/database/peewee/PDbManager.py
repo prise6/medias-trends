@@ -74,40 +74,63 @@ class PDbManager(DbManager):
     # TO DB (meaning get_or_create)
     #
 
-    def tracker_to_db(tracker: Tracker):
+    def tracker_to_db(tracker: Tracker, update=False):
         if not isinstance(tracker, Tracker):
             raise ValueError("Tracker must be Tracker instance")
         db_tracker, created = PTracker.get_or_create(
             name=tracker.name,
             defaults={'scheme': tracker.scheme, 'netloc': tracker.netloc, 'path': tracker.path}
         )
+        updated = 0
         if created:
             logger.debug("Tracker has been created")
         else:
-            db_tracker.scheme = tracker.scheme
-            db_tracker.netloc = tracker.netloc
-            db_tracker.path = tracker.path
+            try:
+                assert db_tracker.scheme == tracker.scheme
+                assert db_tracker.netloc == tracker.netloc
+                assert db_tracker.path == tracker.path
+            except AssertionError:
+                db_tracker.scheme = tracker.scheme
+                db_tracker.netloc = tracker.netloc
+                db_tracker.path = tracker.path
+                logger.debug("Tracker is different from database tracker")
+                if update:
+                    updated = db_tracker.save()
+                    if updated > 0:
+                        logger.debug("Tracker has been updated")
+        return db_tracker, created, updated
 
-        return db_tracker
-
-    def torrent_to_db(torrent: Torrent):
+    def torrent_to_db(torrent: Torrent, update=False):
         if not isinstance(torrent, Torrent):
             raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
             info_hash=torrent.info_hash,
             defaults={'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
         )
+        updated = 0
         if created:
             logger.debug("Torrent has been created")
         else:
-            # force torrent values
-            db_torrent.name = torrent.name
-            db_torrent.pub_date = torrent.pub_date
-            db_torrent.size = torrent.size
-            db_torrent.status = torrent.status
-            db_torrent.category = torrent.category
+            try:
+                # force torrent values
+                assert db_torrent.name == torrent.name
+                assert db_torrent.pub_date == torrent.pub_date
+                assert db_torrent.size == torrent.size
+                assert db_torrent.status == torrent.status
+                assert db_torrent.category == torrent.category
+            except AssertionError:
+                db_torrent.name = torrent.name
+                db_torrent.pub_date = torrent.pub_date
+                db_torrent.size = torrent.size
+                db_torrent.status = torrent.status
+                db_torrent.category = torrent.category
+                logger.debug("Torrent is different from database tracker")
+                if update:
+                    updated = db_torrent.save()
+                    if updated > 0:
+                        logger.debug("Torrent has been updated")
 
-        return db_torrent
+        return db_torrent, created, updated
 
     #
     # updates
@@ -118,18 +141,18 @@ class PDbManager(DbManager):
         method_to_call = "%s_to_db" % (class_name)
         try:
             method = getattr(PDbManager, method_to_call)
-            db_obj = method(obj)
+            db_obj, _, updated = method(obj, update=True)
         except AttributeError:
             raise ValueError("Method %s doesn't exist" % method_to_call)
 
-        return db_obj, db_obj.save()
+        return db_obj, updated
 
     #
     # Special save
     #
 
     def save_page(page: Page, torrent: Torrent, tracker: Tracker):
-        res = PDbManager.save_torrent_tracker(torrent, tracker)
+        res, to_tr_c, to_c, tr_c = PDbManager.save_torrent_tracker(torrent, tracker)
         db_tracker = res.tracker
         db_torrent = res.torrent
 
@@ -145,16 +168,16 @@ class PDbManager(DbManager):
         return db_page, created
 
     def save_torrent_tracker(torrent: Torrent, tracker: Tracker):
-        db_tracker = PDbManager.tracker_to_db(tracker)
-        db_torrent = PDbManager.torrent_to_db(torrent)
+        db_tracker, tracker_created, _ = PDbManager.tracker_to_db(tracker)
+        db_torrent, torrent_created, _ = PDbManager.torrent_to_db(torrent)
         db_torrent_tracker, created = PTorrentTracker.get_or_create(tracker=db_tracker, torrent=db_torrent)
         if created:
             logger.debug("Relation torrent-tracker has been created")
 
-        return db_torrent_tracker
+        return db_torrent_tracker, created, torrent_created, tracker_created
 
     def save_stats(stats: Stats):
-        res = PDbManager.save_torrent_tracker(stats.torrent, stats.tracker)
+        res, _, _, _ = PDbManager.save_torrent_tracker(stats.torrent, stats.tracker)
         db_tracker = res.tracker
         db_torrent = res.torrent
         db_stats, created = PStats.get_or_create(
@@ -174,7 +197,7 @@ class PDbManager(DbManager):
 
     def save_stats_collection_as_trends(stats_collection: StatsCollection):
         for torrent in stats_collection.torrents:
-            db_torrent = PDbManager.torrent_to_db(torrent)
+            db_torrent, _, _ = PDbManager.torrent_to_db(torrent)
             db_trends, created = PTrends.get_or_create(
                 torrent=db_torrent,
                 valid_date=stats_collection.valid_date,
@@ -194,7 +217,7 @@ class PDbManager(DbManager):
         return PDbManager.db_to_tracker(PTracker.get(name=name))
 
     def get_stats_collection_by_torrent(torrent: Torrent):
-        db_torrent = PDbManager.torrent_to_db(torrent)
+        db_torrent, _, _ = PDbManager.torrent_to_db(torrent)
         stats_list = [PDbManager.db_to_stats(s, torrent) for s in db_torrent.stats]
 
         return StatsCollection(stats_list)

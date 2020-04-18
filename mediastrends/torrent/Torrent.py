@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Union
 from mediastrends import STATUS_NAME, CATEGORY_NAME
 import mediastrends.tools.torrentfile as tools_tf
 
@@ -31,7 +32,7 @@ class Torrent:
     @info_hash.setter
     def info_hash(self, info_hash: str):
         if isinstance(info_hash, str) and len(info_hash) == 40 and int(info_hash, 16):
-            self._info_hash = info_hash
+            self._info_hash = info_hash.lower()
         else:
             raise ValueError('Info hash must be hexadecimal string (%s)' % info_hash)
 
@@ -123,11 +124,11 @@ class TorrentFile(Torrent):
         return self._content
 
     @content.setter
-    def content(self, content: bytes):
-        if isinstance(content, bytes):
+    def content(self, content: Union[bytes, str]):
+        if isinstance(content, bytes) | isinstance(content, str):
             self._content = content
         else:
-            raise TypeError("File Torrent content must be instance of bytes")
+            raise TypeError("File Torrent content must be instance of bytes or string")
         return self
 
     @property

@@ -48,7 +48,8 @@ class TrendsManager():
             df = sc.dataframe
             sc.dataframe = df[:self._maxdate]
 
-        scores = np.array([trend_engine.score(s) for s in stats_collections])
+        # scores = np.array([trend_engine.score(s) for s in stats_collections])
+        scores = np.array(trend_engine.score_list(stats_collections))
         item_sorted = np.argsort(scores)[::-1]
 
         for key, index in enumerate(item_sorted):

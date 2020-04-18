@@ -12,7 +12,7 @@ from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.TorrentsManager import TorrentsManager
 
 from mediastrends.trends.TrendsManager import TrendsManager
-from mediastrends.trends.TrendsEngine import ClassicTrendsEngine
+from mediastrends.trends.TrendsEngine import NormalizedTrendsEngine
 
 import mediastrends.stats as stats
 
@@ -56,12 +56,13 @@ def torrents_add(test, indexer: str, category: list = None, **kwargs):
                     pass
 
                 with db:
-                    _, create = PDbManager.save_page(
-                        page=torznab_result['page'],
-                        torrent=torznab_result['torrent'],
-                        tracker=torznab_result['tracker']
-                    )
-                    nb_torrent += create
+                    for tracker in torznab_result['trackers']:
+                        _, _, to_created, _ = PDbManager.save_torrent_tracker(
+                            torrent=torznab_result['torrent'],
+                            tracker=tracker
+                        )
+
+                        nb_torrent += to_created
             except Exception as err:
                 logger.error("Error during elements creation: %s" % str(err))
                 pass
@@ -75,7 +76,9 @@ def create_torznab_from_cli_params(indexer: str, category: str):
     client = TorznabJackettClient(config)
     client.indexer = indexer
     indexer = indexers_config.get(indexer).get(category)
-    if not indexer.get('active'):
+    if not indexer:
+        raise Exception("Indexer %s with category %s doesn't exist" % (indexer, category))
+    if not indexer.get('active', False):
         raise Exception("Indexer %s with category %s is not active" % (indexer, category))
     if 'action' not in indexer:
         raise Exception("Action param must be set")
@@ -87,8 +90,9 @@ def create_torznab_from_cli_params(indexer: str, category: str):
 
 
 def elements_from_torznab_result(result: TorznabJackettResult) -> dict:
-    elements = dict.fromkeys(['keep', 'page', 'torrent', 'tracker'], None)
+    elements = dict.fromkeys(['keep', 'page', 'torrent', 'trackers'], None)
     elements['keep'] = False
+    elements['trackers'] = []
     elements['torrent'] = result.to_torrent_file()
     elements['page'] = Page(result.get('guid'))
     if elements.get('torrent').tracker_urls is None:
@@ -96,22 +100,21 @@ def elements_from_torznab_result(result: TorznabJackettResult) -> dict:
     for tracker_url in elements.get('torrent').tracker_urls:
         tracker = tracker_from_config_by_url(tracker_url)
         if tracker is not None:
-            elements['tracker'] = tracker
+            elements['trackers'].append(tracker)
             elements['keep'] = True
-            break
-
     return elements
 # endregion
 
 
 # region
-def torrents_stats(test, tracker_name: str, category, **kwargs):
+def torrents_stats(test, tracker_name: str, category: list = None, **kwargs):
     nb_stats = 0
     if test:
         logger.debug("torrents_stats task")
         return nb_stats
 
     assert tracker_name in trackers_config
+    assert isinstance(category, list)
 
     if not trackers_config.get(tracker_name).get('active', False):
         return nb_stats
@@ -119,7 +122,7 @@ def torrents_stats(test, tracker_name: str, category, **kwargs):
     tracker = tracker_from_config_by_name(tracker_name)
 
     if category is not None:
-        category = [CATEGORY_NAME.get(c) for c in category]
+        category = [CATEGORY_NAME[c] for c in category]
 
     nb_stats = torrents_stats_with_tracker(tracker, category)
 
@@ -160,7 +163,7 @@ def compute_trending(test, category: list = None, mindate=None, maxdate=datetime
         return
     with db_factory.get_instance():
         trends_manager = TrendsManager(config, PDbManager, category, mindate, maxdate)
-        trends_manager.evaluate(ClassicTrendsEngine())
+        trends_manager.evaluate(NormalizedTrendsEngine())
         trends_manager.save_trends()
 # endregion
 

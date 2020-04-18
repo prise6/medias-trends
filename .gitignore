@@ -81,6 +81,7 @@ target/
 
 # VS Code
 .vscode/
+.devcontainer.json
 
 # Spyder
 .spyproject/

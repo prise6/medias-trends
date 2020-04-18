@@ -1,11 +1,27 @@
 ARG BASE_CONTAINER=python:3.7-buster
 FROM $BASE_CONTAINER
 
-WORKDIR /app
-ENV WORKDIR=/app
+ARG USERNAME=vscode
+ARG USER_UID=1001
+ARG USER_GID=$USER_UID
+ARG WORKDIR=/package
+
+WORKDIR $WORKDIR
+ENV WORKDIR=$WORKDIR
+
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && chown -R $USER_UID:$USER_GID $WORKDIR
+
+USER $USERNAME
+
+ENV PATH="~/.local/bin:${PATH}"
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-warn-script-location -r requirements.txt
+
+USER root
 
 # use entrypoint one day
 CMD ["tail", "-f", "/dev/null"]

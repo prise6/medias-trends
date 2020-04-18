@@ -4,13 +4,16 @@ services:
     build:
       context: ./docker
       dockerfile: Dockerfile-dev
+      args:
+        USER_UID: 1000
+        WORKDIR: /package
     image: mediastrends-core-dev:0.1.0
     container_name: mediastrends-core-dev
-    user: root
+    user: vscode
     volumes:
-      - "${PWD}:/app"
-      - "${PWD}/data:/data"
-      - "${PWD}/sqlite/:/sqlite"
+      - "${PWD}:/package"
+      - "${PWD}/data:/package/data"
+      - "${PWD}/sqlite/:/package/sqlite"
     labels:
       - "traefik.enable=true"
       - "traefik.port=8888"
@@ -45,7 +48,7 @@ services:
      - netproxy
 
   jackett:
-    image: linuxserver/jackett
+    image: linuxserver/jackett:latest
     container_name: mediastrends-jackett-dev
     env_file:
       - .env

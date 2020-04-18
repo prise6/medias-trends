@@ -1,16 +1,80 @@
 """
 General tool functions about torrentfile
 """
+from typing import Union
 import hashlib
 import bencode
 import requests
 import urllib.parse
 import datetime
+import re
+import base64
 
 from mediastrends import config
 
 
-def parse(content: bytes) -> dict:
+def parse(content: Union[bytes, str]) -> dict:
+    if isinstance(content, bytes):
+        return parse_bytes(content)
+    if isinstance(content, str):
+        return parse_str(content)
+
+
+def parse_str(content: str):
+    """Parse content of string content.
+    Only magnet link correspond.
+
+    Args:
+        content (str): String content (magnet link only)
+
+    Returns:
+        dict: with following keys
+
+            * 'info_hash': str (hexadecimal values),
+            * 'tracker_urls': list
+    Raises:
+        NotImplementedError: If content corresponds not to magnet link
+    """
+    if content.startswith('magnet:'):
+        url_parse = urllib.parse.urlparse(content)
+        params = urllib.parse.parse_qs(url_parse.query)
+
+        if 'xt' not in params:
+            raise ValueError("Magnet link must have xt param")
+        if 'tr' not in params:
+            raise ValueError("Magnet link must have tr param")
+
+        xt_param = params.get('xt')[0]
+        match = re.search(r'urn:btih:([0-9A-Za-z]+)', xt_param)
+        candidate_info_hash = match.group(1) if match else None
+
+        if not candidate_info_hash:
+            raise ValueError("No info hash candidates")
+
+        info_hash = None
+        if len(candidate_info_hash) == 40 and int(candidate_info_hash, 16):
+            info_hash = candidate_info_hash
+        elif len(candidate_info_hash) == 32:
+            try:
+                info_hash = base64.b32decode(candidate_info_hash).hex()
+            except Exception:
+                pass
+
+        if not info_hash:
+            raise ValueError("Info hash in magnet does not match hexadecimal or base32")
+
+        tracker_urls = [extract_tracker_url_from_announce(url) for url in params.get('tr')]
+        tracker_urls = [url_split for url_split in tracker_urls if url_split.scheme and url_split.netloc]
+
+        res = {
+            'info_hash': info_hash,
+            'tracker_urls': tracker_urls
+        }
+        return res
+    raise NotImplementedError
+
+
+def parse_bytes(content: bytes) -> dict:
     """Parse only needed values by this app
     from content of torrent file (.torrent)
 
@@ -75,8 +139,14 @@ def read_from_url(url: str, headers: dict = {}) -> bytes:
     if 'user-agent' not in headers:
         headers['user-agent'] = config.get('requests', 'user_agent')
 
-    with requests.get(url, headers=headers) as req:
-        req.raise_for_status()
+    try:
+        with requests.get(url, headers=headers) as req:
+            req.raise_for_status()
+    except requests.exceptions.InvalidSchema:
+        with requests.get(url, headers=headers, allow_redirects=False) as req:
+            if req.headers.get('Location') and req.headers.get('Location').startswith('magnet:'):
+                return req.headers.get('Location')
+
     return req.content
 
 
@@ -123,6 +193,8 @@ def read_resource(resource, headers: dict = {}) -> bytes:
         bytes: binary content
     """
     if isinstance(resource, str):
+        if resource.split(':')[0] == 'magnet':
+            raise NotImplementedError("Magnet link are not supported")
         if urllib.parse.urlsplit(resource)[0] in ['http', 'https', 'file', 'ftp']:
             return read_from_url(resource, headers=headers)
 
