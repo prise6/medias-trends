@@ -124,8 +124,8 @@ class TorrentsAdd(TorentsTasks):
             mock_tf.return_value = {'tracker_urls': ['http://netloc:8080']}
             elements = elements_from_torznab_result(torznab_result)
             self.assertTrue(elements['keep'])
-            self.assertEqual(elements['tracker'].name, 'tracker_1')
-            self.assertEqual(elements['tracker'].netloc, 'netloc:8080')
+            self.assertEqual(elements['trackers'][0].name, 'tracker_1')
+            self.assertEqual(elements['trackers'][0].netloc, 'netloc:8080')
             self.assertEqual(elements['torrent'].name, self.rss_parser_items[0].get('title'))
 
             mock_tf.return_value = {'tracker_urls': ['udp://netloc:5217']}

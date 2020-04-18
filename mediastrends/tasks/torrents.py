@@ -56,12 +56,13 @@ def torrents_add(test, indexer: str, category: list = None, **kwargs):
                     pass
 
                 with db:
-                    _, create = PDbManager.save_page(
-                        page=torznab_result['page'],
-                        torrent=torznab_result['torrent'],
-                        tracker=torznab_result['tracker']
-                    )
-                    nb_torrent += create
+                    for tracker in torznab_result['trackers']:
+                        _, _, to_created, _ = PDbManager.save_torrent_tracker(
+                            torrent=torznab_result['torrent'],
+                            tracker=tracker
+                        )
+
+                        nb_torrent += to_created
             except Exception as err:
                 logger.error("Error during elements creation: %s" % str(err))
                 pass
@@ -75,7 +76,9 @@ def create_torznab_from_cli_params(indexer: str, category: str):
     client = TorznabJackettClient(config)
     client.indexer = indexer
     indexer = indexers_config.get(indexer).get(category)
-    if not indexer.get('active'):
+    if not indexer:
+        raise Exception("Indexer %s with category %s doesn't exist" % (indexer, category))
+    if not indexer.get('active', False):
         raise Exception("Indexer %s with category %s is not active" % (indexer, category))
     if 'action' not in indexer:
         raise Exception("Action param must be set")
@@ -87,8 +90,9 @@ def create_torznab_from_cli_params(indexer: str, category: str):
 
 
 def elements_from_torznab_result(result: TorznabJackettResult) -> dict:
-    elements = dict.fromkeys(['keep', 'page', 'torrent', 'tracker'], None)
+    elements = dict.fromkeys(['keep', 'page', 'torrent', 'trackers'], None)
     elements['keep'] = False
+    elements['trackers'] = []
     elements['torrent'] = result.to_torrent_file()
     elements['page'] = Page(result.get('guid'))
     if elements.get('torrent').tracker_urls is None:
@@ -96,10 +100,8 @@ def elements_from_torznab_result(result: TorznabJackettResult) -> dict:
     for tracker_url in elements.get('torrent').tracker_urls:
         tracker = tracker_from_config_by_url(tracker_url)
         if tracker is not None:
-            elements['tracker'] = tracker
+            elements['trackers'].append(tracker)
             elements['keep'] = True
-            break
-
     return elements
 # endregion
 

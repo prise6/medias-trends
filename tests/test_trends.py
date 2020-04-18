@@ -1,6 +1,7 @@
 import unittest
 import datetime
 import hashlib
+import numpy as np
 from mediastrends.trends.TrendsEngine import ClassicTrendsEngine, NormalizedTrendsEngine
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
@@ -56,7 +57,7 @@ class TrendsEngine(unittest.TestCase):
 
         scores_2 = classic_trend_engine.score_list(self.stats_collections)
         self.assertEqual(scores_2[0], score_1)
-        self.assertEqual(scores_2[1], (60 + 100) / 2 * .5 + (120 + 100) / 2 * .5)
+        self.assertEqual(scores_2[1], np.round((60 + 100) / 2 * .5 + (120 + 100) / 2 * .5))
         self.assertEqual(scores_2[2], ((60 + 100) / 2 * .5 + (120 + 100) / 2 * .5) * .5 + (430 + 540) / 2 * .5)
 
     def test_normalized_trends_engine(self):
@@ -66,10 +67,10 @@ class TrendsEngine(unittest.TestCase):
 
         max_tracker_A = 175
         max_tracker_B = 570
-        self.assertEqual(scores[0], 45 / max_tracker_A * 100)
-        self.assertEqual(scores[1], (95 / max_tracker_A) * 100)
-        self.assertEqual(scores[2], ((95 / max_tracker_A) * .5 + ((430 + 540) / 2) / max_tracker_B * .5) * 100)
-        self.assertEqual(scores[3], ((95 / 175) * .5 + ((430 + 540) / 2) / max_tracker_B * .5) * 100)
+        self.assertEqual(scores[0], np.round(45 / max_tracker_A * 100, 2))
+        self.assertEqual(scores[1], np.round((95 / max_tracker_A) * 100, 2))
+        self.assertEqual(scores[2], np.round(((95 / max_tracker_A) * .5 + ((430 + 540) / 2) / max_tracker_B * .5) * 100, 2))
+        self.assertEqual(scores[3], np.round(((95 / 175) * .5 + ((430 + 540) / 2) / max_tracker_B * .5) * 100, 2))
 
         score_1 = normalized_trend_engine.score(self.stats_collections[0])
         self.assertEqual(score_1, 100)
