@@ -1,6 +1,7 @@
 """
 General tool functions about torrentfile
 """
+from typing import Union
 import hashlib
 import bencode
 import requests
@@ -10,7 +11,26 @@ import datetime
 from mediastrends import config
 
 
-def parse(content: bytes) -> dict:
+def parse(content: Union[bytes, str]) -> dict:
+    if isinstance(content, bytes):
+        return parse_bytes(content)
+    if isinstance(content, str):
+        return parse_str(content)
+
+
+def parse_str(content: str):
+    if content.startswith('magnet:'):
+        # print(content)
+        # url_parse = urllib.parse.urlparse(content)
+        # params = urllib.parse.parse_qs(url_parse.query)
+        # print(url_parse)
+        # print(params)
+        # exit()
+        raise NotImplementedError("Magnet link not supported yet")
+    raise NotImplementedError
+
+
+def parse_bytes(content: bytes) -> dict:
     """Parse only needed values by this app
     from content of torrent file (.torrent)
 
@@ -75,8 +95,14 @@ def read_from_url(url: str, headers: dict = {}) -> bytes:
     if 'user-agent' not in headers:
         headers['user-agent'] = config.get('requests', 'user_agent')
 
-    with requests.get(url, headers=headers) as req:
-        req.raise_for_status()
+    try:
+        with requests.get(url, headers=headers) as req:
+            req.raise_for_status()
+    except requests.exceptions.InvalidSchema:
+        with requests.get(url, headers=headers, allow_redirects=False) as req:
+            if req.headers.get('Location') and req.headers.get('Location').startswith('magnet:'):
+                return req.headers.get('Location')
+
     return req.content
 
 
@@ -123,6 +149,8 @@ def read_resource(resource, headers: dict = {}) -> bytes:
         bytes: binary content
     """
     if isinstance(resource, str):
+        if resource.split(':')[0] == 'magnet':
+            raise NotImplementedError("Magnet link are not supported")
         if urllib.parse.urlsplit(resource)[0] in ['http', 'https', 'file', 'ftp']:
             return read_from_url(resource, headers=headers)
 

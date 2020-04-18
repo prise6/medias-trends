@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Union
 from mediastrends import STATUS_NAME, CATEGORY_NAME
 import mediastrends.tools.torrentfile as tools_tf
 
@@ -123,11 +124,11 @@ class TorrentFile(Torrent):
         return self._content
 
     @content.setter
-    def content(self, content: bytes):
-        if isinstance(content, bytes):
+    def content(self, content: Union[bytes, str]):
+        if isinstance(content, bytes) | isinstance(content, str):
             self._content = content
         else:
-            raise TypeError("File Torrent content must be instance of bytes")
+            raise TypeError("File Torrent content must be instance of bytes or string")
         return self
 
     @property
