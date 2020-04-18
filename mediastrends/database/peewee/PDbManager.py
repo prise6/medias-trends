@@ -118,13 +118,13 @@ class PDbManager(DbManager):
                 assert db_torrent.size == torrent.size
                 assert db_torrent.status == torrent.status
                 assert db_torrent.category == torrent.category
-                logger.debug("Torrent is different from database tracker")
             except AssertionError:
                 db_torrent.name = torrent.name
                 db_torrent.pub_date = torrent.pub_date
                 db_torrent.size = torrent.size
                 db_torrent.status = torrent.status
                 db_torrent.category = torrent.category
+                logger.debug("Torrent is different from database tracker")
                 if update:
                     updated = db_torrent.save()
                     if updated > 0:

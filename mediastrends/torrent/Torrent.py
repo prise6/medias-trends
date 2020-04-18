@@ -32,7 +32,7 @@ class Torrent:
     @info_hash.setter
     def info_hash(self, info_hash: str):
         if isinstance(info_hash, str) and len(info_hash) == 40 and int(info_hash, 16):
-            self._info_hash = info_hash
+            self._info_hash = info_hash.lower()
         else:
             raise ValueError('Info hash must be hexadecimal string (%s)' % info_hash)
 
