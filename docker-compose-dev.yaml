@@ -48,7 +48,7 @@ services:
      - netproxy
 
   jackett:
-    image: linuxserver/jackett
+    image: linuxserver/jackett:latest
     container_name: mediastrends-jackett-dev
     env_file:
       - .env

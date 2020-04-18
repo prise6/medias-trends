@@ -84,10 +84,16 @@ class PDbManager(DbManager):
         if created:
             logger.debug("Tracker has been created")
         else:
-            db_tracker.scheme = tracker.scheme
-            db_tracker.netloc = tracker.netloc
-            db_tracker.path = tracker.path
-
+            try:
+                assert db_tracker.scheme == tracker.scheme
+                assert db_tracker.netloc == tracker.netloc
+                assert db_tracker.path == tracker.path
+            except AssertionError:
+                logger.debug("Tracker has been updated")
+                db_tracker.scheme = tracker.scheme
+                db_tracker.netloc = tracker.netloc
+                db_tracker.path = tracker.path
+                db_tracker.save()
         return db_tracker
 
     def torrent_to_db(torrent: Torrent):

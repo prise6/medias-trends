@@ -1,5 +1,6 @@
 # Medias Trends (Torrents)
 
+
 ## Package `mediastrends`
 
 
@@ -171,3 +172,20 @@ trackers:
 ### Usage
 
 To Do
+
+
+## Disclaimer
+
+One main goal of this project is learning:
+
+* more *advanced* topics in Python:
+  * linting (flake8)
+  * unittest and mocking
+  * typing
+  * packaging
+  * cli with argparse
+  * peewee ORM
+* github action (see .github/package.yaml)
+* airflow
+* bittorent protocol
+* vscode + remote container dev with python

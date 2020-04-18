@@ -260,5 +260,6 @@ def tracker_from_config_by_url(url: str) -> Tracker:
     for name, infos in trackers_config.items():
         if infos.get('active', False) and infos.get('scheme') == tracker.scheme and infos.get('netloc') == tracker.netloc:
             tracker._name = name
+            tracker._path = infos.get('path')
             return tracker
     return None

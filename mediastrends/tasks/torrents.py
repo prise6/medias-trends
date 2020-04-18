@@ -12,7 +12,7 @@ from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.TorrentsManager import TorrentsManager
 
 from mediastrends.trends.TrendsManager import TrendsManager
-from mediastrends.trends.TrendsEngine import ClassicTrendsEngine
+from mediastrends.trends.TrendsEngine import NormalizedTrendsEngine
 
 import mediastrends.stats as stats
 
@@ -161,7 +161,7 @@ def compute_trending(test, category: list = None, mindate=None, maxdate=datetime
         return
     with db_factory.get_instance():
         trends_manager = TrendsManager(config, PDbManager, category, mindate, maxdate)
-        trends_manager.evaluate(ClassicTrendsEngine())
+        trends_manager.evaluate(NormalizedTrendsEngine())
         trends_manager.save_trends()
 # endregion
 
