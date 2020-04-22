@@ -1,3 +1,6 @@
+"""
+General tool functions about request, parsing web content
+"""
 import logging
 import requests
 from bs4 import BeautifulSoup
