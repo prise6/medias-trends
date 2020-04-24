@@ -5,6 +5,7 @@ with open("README.md", "r") as fh:
 
 with open('requirements.txt', 'r') as f:
     requirements = f.read().splitlines()
+    requirements.pop()
 
 setup(
     name='mediastrends',
