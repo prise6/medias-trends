@@ -19,7 +19,8 @@ class TestCLI(unittest.TestCase):
         'mediastrends.cli.reset_tables',
         'mediastrends.cli.reset_database',
         'mediastrends.cli.sqlite_backup',
-        'mediastrends.cli.load_sqlite_backup'
+        'mediastrends.cli.load_sqlite_backup',
+        'mediastrends.cli.get_movies_trending'
     ]
 
     INDEXERS_CONFIG = {
@@ -149,6 +150,12 @@ class TestCLI(unittest.TestCase):
         parser.execute(args)
         self.assertTrue(self.mocks['load_sqlite_backup'].called)
         self.assertEqual(parser.parsed_args_dict.get('backup_date'), '20200401-1100')
+
+    def test_movies_trends_get_parser(self):
+        parser = cli.MoviesTrendsGetParser()
+        args = ''
+        parser.execute(args)
+        self.assertTrue(self.mocks['get_movies_trending'].called)
 
     @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
     @patch('mediastrends.tools.config.read_trackers_file', return_value=TRACKERS_CONFIG)

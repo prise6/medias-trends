@@ -8,6 +8,7 @@ import mediastrends.tools.config as cfg
 from mediastrends import config, trackers_config, indexers_config, db_factory
 from mediastrends.tasks.torrents import torrents_add, torrents_stats, compute_trending, update_status, get_trending
 from mediastrends.tasks.database import sqlite_backup, backup_date, reset_database, reset_tables, load_sqlite_backup
+from mediastrends.tasks.movies import get_trending as get_movies_trending
 
 """
 mediastrends (CLI)
@@ -260,6 +261,17 @@ class DatabaseBackupLoadParser(AbstractParser):
     def task(self, **kwargs):
         load_sqlite_backup(**kwargs)
 
+
+class MoviesTrendsGetParser(AbstractParser):
+
+    def build(self):
+        _argument_mindate(self.parser)
+        _argument_maxdate(self.parser)
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        get_movies_trending(**kwargs)
+
 # endregion
 
 #
@@ -321,8 +333,9 @@ class MediasTrendsCLI(AbstractParser):
 class TopLevelSubParsers(AbstractSubParsers):
 
     def add_parsers(self):
-        DatabaseSubParsers(self.subparsers.add_parser("database", help="Commands on torrent"), title="Database commands")
-        TorrentsSubParsers(self.subparsers.add_parser("torrents", help="Commands on database"), title="Torrents commands")
+        DatabaseSubParsers(self.subparsers.add_parser("database", help="Commands on database"), title="Database commands")
+        TorrentsSubParsers(self.subparsers.add_parser("torrents", help="Commands on torrent"), title="Torrents commands")
+        MoviesSubParsers(self.subparsers.add_parser("movies", help="Commands on movies"), title="Movies commands")
 
 
 class DatabaseSubParsers(AbstractSubParsers):
@@ -339,6 +352,12 @@ class TorrentsSubParsers(AbstractSubParsers):
         TorrentsStatsParser(self.subparsers.add_parser("stats", help="Scrape and save seeders, leechers, completed from tracker"))
         TorrentsTrendsSubParsers(self.subparsers.add_parser("trends", help="Compute which torrents are most popular"))
         TorrentsStatusParser(self.subparsers.add_parser("status", help="Define which torrent are new, to follow and to forget"))
+
+
+class MoviesSubParsers(AbstractSubParsers):
+
+    def add_parsers(self):
+        MoviesTrendsGetParser(self.subparsers.add_parser("get-trends", help="Print trending movies basend on movie torrents"))
 
 
 class TorrentsTrendsSubParsers(AbstractSubParsers):
