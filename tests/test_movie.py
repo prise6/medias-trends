@@ -1,20 +1,28 @@
 import unittest
+import random
 from unittest.mock import patch
 import datetime
 import imdb
+import mediastrends.tools.movies as tools_m
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Movie import Movie
+from mediastrends.torrent.Movie import movies_from_group_torrents, movies_from_title
+
+
+def generate_torrents(nb):
+    return [Torrent(
+        info_hash='%40x' % random.getrandbits(160),
+        name="name",
+        size=random.randint(200, 5000),
+        pub_date=datetime.datetime.now(),
+        category=Torrent._CAT_MOVIE
+    ) for i in range(nb)]
 
 
 class MovieClass(unittest.TestCase):
 
     def setUp(self):
-        self.torrents = [
-            Torrent("85be94b120becfb44f94f97779c61633c7647629", "name_1",
-                    size=200, pub_date=datetime.datetime.now(), category=Torrent._CAT_MOVIE),
-            Torrent("85be94b120becfb44f94f97779c61633c7647628", "name_2",
-                    size=350, pub_date=datetime.datetime.now(), category=Torrent._CAT_MOVIE)
-        ]
+        self.torrents = generate_torrents(2)
         self.fake_imdb_movie = imdb.Movie.Movie(movieID='123')
 
     def test_init_class(self):
@@ -77,3 +85,73 @@ class MovieClass(unittest.TestCase):
 
         self.assertEqual(data.get('cover_url'), movie.cover_url)
         self.assertEqual(data.get('title'), movie.title)
+
+
+class MovieCreation(unittest.TestCase):
+
+    def setUp(self):
+        self.torrents = generate_torrents(10)
+        self.torrents[0].name = 'Titre Film Long (sous titre) (2020).MULTi.VFF.2160p.10bit.4KLight.WEB.HDR10.BluRay.x265.AC3.5.1.Portos'
+        self.torrents[1].name = 'Titre film long 2020 TRUEFRENCH HDRiP MD'
+        self.torrents[2].name = 'titre.film.long.2020.FRENCH.BRRip.XviD.AC3-NoTag'
+        self.torrents[3].name = '[EQUIPE] Titre Film LONG (2020) 720p WEBRip'
+        self.torrents[4].name = 'Titre du film qui à rien à voir'
+        self.torrents[5].name = 'movie title (2019) VO 720p WEBRip stéréo x265 HEVC-PSA'
+        self.torrents[6].name = 'MOVIE title - 2019 - MULTI - WEBRIP - 2160P - 8BITS - 4K - X265'
+        self.torrents[7].name = 'U-235 2019 MULTi 1080p WEB H264-NLX5'
+        self.torrents[8].name = 'name 2'
+
+        self.fake_groups = {
+            'titre film long': {
+                'torrents': self.torrents[:2],
+                'parsed_titles': ['titre film long'],
+                'parsed_names': [{'year': 2020}, {'year': 2019}]
+            },
+            'titre film long2': {
+                'torrents': [self.torrents[3]],
+                'parsed_titles': ['titre film long2'],
+                'parsed_names': [{'year': 2020}]
+            }
+        }
+
+    def test_group_torrents_by_name(self):
+        groups = tools_m.group_torrents_by_name(self.torrents)
+
+        self.assertIsInstance(groups, dict)
+        self.assertCountEqual(groups.keys(), ['titre film long', 'titre du film qui à rien à voir', 'movie title', 'u-235', 'name', 'name 2'])
+
+    @patch("imdb.IMDb")
+    def test_movie_from_title(self, ia_mock):
+        imdb_movie = imdb.Movie.Movie(movieID='123')
+        imdb_movie.set_data({'kind': 'movie', 'year': 2020})
+        instance = ia_mock.return_value
+        instance.search_movie.return_value = [
+            imdb_movie
+        ]
+        results = movies_from_title("title")
+
+        self.assertIsInstance(results, list)
+        self.assertEqual(results[0].imdb_id, "123")
+
+        instance.search_movie.return_value = []
+        results = movies_from_title("title")
+        self.assertIsInstance(results, list)
+
+    @patch("mediastrends.torrent.Movie.movies_from_title")
+    def test_movies_from_group_torrents(self, mock):
+        fake_movie_1 = Movie(imdb_id='123')
+        fake_movie_1._extras['year'] = 2020
+        fake_movie_2 = Movie(imdb_id='123')
+        fake_movie_2._extras['year'] = 2019
+        mock.return_value = [fake_movie_1, fake_movie_2]
+
+        movies = movies_from_group_torrents(self.fake_groups)
+
+        self.assertIsInstance(movies, list)
+        self.assertEqual(movies[0].imdb_id, '123')
+        self.assertEqual(len(movies[0].torrents), 3)
+
+        mock.return_value = []
+
+        movies = movies_from_group_torrents(self.fake_groups)
+        self.assertEqual([], movies)
