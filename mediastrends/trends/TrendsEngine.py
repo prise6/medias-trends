@@ -57,7 +57,7 @@ class NormalizedTrendsEngine(TrendsEngine):
                 concat_df = sc_df
 
         score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean()
-        score_df['score'] = score_df['leechers'] * 0.5 + score_df['completed'] * 0.5
+        score_df['score'] = (score_df['leechers'] * .9 + score_df['completed'] * .1) * score_df['leechers'] / score_df['seeders']
         score_df = score_df.reset_index()
         # score_df = score_df.reset_index(['valid_date', 'sc_index'])
         score_max_df = score_df.groupby(['tracker_name']).max().rename(columns={'score': 'score_max'})[['score_max']]
