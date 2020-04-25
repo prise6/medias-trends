@@ -10,6 +10,7 @@ from mediastrends.database.peewee.PTracker import PTracker
 from mediastrends.database.peewee.PPage import PPage
 from mediastrends.database.peewee.PStats import PStats
 from mediastrends.database.peewee.PTrends import PTrends
+from mediastrends.database.peewee.PIMDBObject import PIMDBObject
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ _TABLES_MODELS = {
     'page': PPage,
     'stats': PStats,
     'trends': PTrends,
+    'imdb': PIMDBObject
 }
 
 _BACKUP_FORMAT = "backup-sqlite-%s.db"

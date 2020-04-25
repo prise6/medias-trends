@@ -44,7 +44,7 @@ def group_torrents_by_name(torrents: List[Torrent]) -> dict:
 
     dbscan_clusters = DBSCAN(min_samples=1, eps=.025, metric='precomputed').fit_predict(similarity_matrix)
 
-    logger.debug('Found %s clusters for %s torrents' % (np.max(dbscan_clusters), nb_torrents))
+    logger.debug('Found %s clusters for %s torrents' % (np.max(dbscan_clusters) + 1, nb_torrents))
 
     for cluster in np.unique(dbscan_clusters):
         idxs = np.argwhere(dbscan_clusters == cluster).flatten().tolist()

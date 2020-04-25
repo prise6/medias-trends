@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 # region
-def get_trending(test, mindate=None, maxdate=None, **kwargs):
+def compute_trending(test, mindate=None, maxdate=None, **kwargs):
     if test:
         logger.debug("get_trending task")
         return
@@ -17,7 +17,21 @@ def get_trending(test, mindate=None, maxdate=None, **kwargs):
 
     trendings_movies = movies_from_torrents([t for t, _, _ in trendings_torrents])
 
-    for movie in trendings_movies:
-        print(movie)
-        print("------------")
+    with db_factory.get_instance():
+        for movie in trendings_movies:
+            PDbManager.imdb_object_to_db(movie)
+# endregion
+
+
+# region
+def get_trending(test, mindate=None, maxdate=None, **kwargs):
+    if test:
+        logger.debug("get_trending task")
+        return
+    with db_factory.get_instance():
+        results = PDbManager.get_trending_movies()
+        for item in results:
+            print(item)
+
+    return results
 # endregion
