@@ -1,10 +1,12 @@
 import datetime
 import logging
 import peewee
+from typing import Union
 from peewee import fn
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
+from mediastrends.torrent.Movie import Movie
 from mediastrends.stats import Stats
 from mediastrends.stats import StatsCollection
 from ..DbManager import DbManager
@@ -13,6 +15,7 @@ from .PTracker import PTracker
 from .PPage import PPage
 from .PStats import PStats
 from .PTrends import PTrends
+from .PIMDBObject import PIMDBObject
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +72,17 @@ class PDbManager(DbManager):
             valid_date=db_stats.valid_date
         )
         return stats
+
+    def db_to_movie(db_imdb_obj: PIMDBObject) -> Movie:
+        movie = Movie(
+            imdb_id=db_imdb_obj.imdb_id,
+            torrents=[PDbManager.db_to_torrent(t) for t in db_imdb_obj.torrents]
+        )
+        movie._extras['title'] = db_imdb_obj.title
+        movie._extras['rating'] = db_imdb_obj.rating
+        movie._extras['cover_url'] = db_imdb_obj.cover_url
+        movie._extras['year'] = db_imdb_obj.year
+        return movie
 
     #
     # TO DB (meaning get_or_create)
@@ -131,6 +145,27 @@ class PDbManager(DbManager):
                         logger.debug("Torrent has been updated")
 
         return db_torrent, created, updated
+
+    def imdb_object_to_db(obj: Union[Movie], update=False):
+        db_imdb_obj = PIMDBObject.get_or_none(imdb_id=obj.imdb_id)
+
+        print(db_imdb_obj)
+        if not db_imdb_obj:
+            db_imdb_obj = PIMDBObject.create(
+                imdb_id=obj.imdb_id,
+                title=obj.title,
+                rating=obj.rating,
+                cover_url=obj.cover_url,
+                year=obj.year
+            )
+        else:
+            if update:
+                db_imdb_obj.save()
+
+        info_hashes_to_update = [torrent.info_hash for torrent in obj.torrents]
+        torrents_updated = PTorrent.update(imdb_object=obj.imdb_id).where(PTorrent.info_hash.in_(info_hashes_to_update)).execute()
+
+        return db_imdb_obj, torrents_updated
 
     #
     # updates
@@ -319,6 +354,33 @@ class PDbManager(DbManager):
         )).order_by(PTrends.score.desc())
 
         return [(PDbManager.db_to_torrent(db_trends.torrent), db_trends.score, db_trends.valid_date) for db_trends in result]
+
+    def get_trending_movies(min_date=None, max_date=None):
+
+        if not min_date and not max_date:
+            max_date = PDbManager.get_max_trend_date_by_category(Torrent._CAT_MOVIE)
+            if max_date is None:
+                raise ValueError("Maximum trend date is null")
+            min_date = max_date - datetime.timedelta(hours=1)
+
+        sub_q = PTrends.select(PTrends.torrent_id, fn.row_number().over(
+            partition_by=[PTrends.torrent],
+            order_by=[PTrends.valid_date.desc()]
+        ).alias("row_number")).where(PTrends.valid_date.between(min_date, max_date))
+
+        # see later if PTrend columns are needed
+        selected_torrents = PTorrent.select(PTorrent.imdb_object).join(sub_q, on=(
+            (sub_q.c.row_number == 1)
+            & (sub_q.c.torrent_id == PTorrent.id)
+        ))
+        selected_torrents = selected_torrents.where(PTorrent.imdb_object.is_null(False)).distinct()
+
+        # fixing peewee issue (and no time)
+        selected_imdb_obj_id = selected_torrents.tuples()
+        movies = PIMDBObject.select().where(PIMDBObject.imdb_id.in_([el[0] for el in selected_imdb_obj_id]))
+        movies_with_torrents = peewee.prefetch(movies, PTorrent.select())
+
+        return [PDbManager.db_to_movie(db_movie) for db_movie in movies_with_torrents]
 
     #
     # SPECIAL REQUESTS

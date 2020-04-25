@@ -1,7 +1,9 @@
 import datetime
+from typing import Union
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
+from mediastrends.torrent.Movie import Movie
 from mediastrends.torrent.Page import Page
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
@@ -39,12 +41,26 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
+    def db_to_movie(db_imdb_obj):
+        return
+
+    @abstractstaticmethod
     def tracker_to_db(tracker: Tracker):
         return
 
     @abstractstaticmethod
     def torrent_to_db(torrent: Torrent):
         return
+
+    @abstractstaticmethod
+    def imdb_object_to_db(obj: Union[Movie]):
+        return
+
+    @abstractstaticmethod
+    def movie_to_db(movie: Movie):
+        if not isinstance(movie, Movie):
+            raise TypeError("Movie must be instance of Movie")
+        return DbManager.imdb_object_to_db(movie)
 
     @abstractstaticmethod
     def update(obj):
@@ -92,6 +108,10 @@ class DbManager(ABC):
 
     @abstractstaticmethod
     def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None):
+        return
+
+    @abstractstaticmethod
+    def get_trending_movies(min_date=None, max_date=None):
         return
 
     @classmethod

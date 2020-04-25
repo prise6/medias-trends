@@ -2,6 +2,7 @@ from peewee import Model, ForeignKeyField, BigIntegerField, CharField, IntegerFi
 
 from mediastrends import db_factory
 from .PTracker import PTracker
+from .PIMDBObject import PIMDBObject
 
 
 class PTorrent(Model):
@@ -15,6 +16,7 @@ class PTorrent(Model):
     size = BigIntegerField(null=True)
     status = IntegerField(null=False, default=1, choices=STATUS)
     category = IntegerField(null=False, default=0, choices=CATEGORY)
+    imdb_object = ForeignKeyField(PIMDBObject, null=True, backref="torrents")
 
     class Meta:
         database = db_factory.database_proxy
