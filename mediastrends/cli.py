@@ -8,7 +8,7 @@ import mediastrends.tools.config as cfg
 from mediastrends import config, trackers_config, indexers_config, db_factory
 from mediastrends.tasks.torrents import torrents_add, torrents_stats, compute_trending, update_status, get_trending
 from mediastrends.tasks.database import sqlite_backup, backup_date, reset_database, reset_tables, load_sqlite_backup
-from mediastrends.tasks.movies import get_trending as get_movies_trending
+from mediastrends.tasks.movies import get_trending as get_movies_trending, compute_trending as compute_movies_trending
 
 """
 mediastrends (CLI)
@@ -104,7 +104,7 @@ def _argument_indexer(parser):
 
 
 def _arugment_tables(parser):
-    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs='+', choices=["torrent", "torrenttracker", "tracker", "page", "stats", "trends"], required=True)
+    parser.add_argument("-t", "--tables", help="Tables names", type=str, nargs='+', choices=["torrent", "torrenttracker", "tracker", "page", "stats", "trends", "imdb"], required=True)
 
 
 def _argument_backup_date(parser):
@@ -272,6 +272,16 @@ class MoviesTrendsGetParser(AbstractParser):
     def task(self, **kwargs):
         get_movies_trending(**kwargs)
 
+
+class MoviesTrendsComputeParser(AbstractParser):
+
+    def build(self):
+        _argument_mindate(self.parser)
+        _argument_maxdate(self.parser)
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        compute_movies_trending(**kwargs)
 # endregion
 
 #
@@ -357,7 +367,8 @@ class TorrentsSubParsers(AbstractSubParsers):
 class MoviesSubParsers(AbstractSubParsers):
 
     def add_parsers(self):
-        MoviesTrendsGetParser(self.subparsers.add_parser("get-trends", help="Print trending movies basend on movie torrents"))
+        MoviesTrendsComputeParser(self.subparsers.add_parser("compute", help="Compute trending movies basend on movie torrents"))
+        MoviesTrendsGetParser(self.subparsers.add_parser("get", help="Print trending movies basend on movie torrents"))
 
 
 class TorrentsTrendsSubParsers(AbstractSubParsers):

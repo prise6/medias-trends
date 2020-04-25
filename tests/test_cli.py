@@ -20,7 +20,8 @@ class TestCLI(unittest.TestCase):
         'mediastrends.cli.reset_database',
         'mediastrends.cli.sqlite_backup',
         'mediastrends.cli.load_sqlite_backup',
-        'mediastrends.cli.get_movies_trending'
+        'mediastrends.cli.get_movies_trending',
+        'mediastrends.cli.compute_movies_trending'
     ]
 
     INDEXERS_CONFIG = {
@@ -156,6 +157,12 @@ class TestCLI(unittest.TestCase):
         args = ''
         parser.execute(args)
         self.assertTrue(self.mocks['get_movies_trending'].called)
+
+    def test_movies_trends_compute_parser(self):
+        parser = cli.MoviesTrendsComputeParser()
+        args = ''
+        parser.execute(args)
+        self.assertTrue(self.mocks['compute_movies_trending'].called)
 
     @patch('mediastrends.tools.config.read_indexers_file', return_value=INDEXERS_CONFIG)
     @patch('mediastrends.tools.config.read_trackers_file', return_value=TRACKERS_CONFIG)
