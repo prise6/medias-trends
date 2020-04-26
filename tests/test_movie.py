@@ -73,10 +73,8 @@ class MovieClass(unittest.TestCase):
         mock.return_value = self.fake_imdb_movie
 
         movie = Movie("123", self.torrents)
-        with self.assertRaises(ValueError):
-            movie.title
-        with self.assertRaises(ValueError):
-            movie.cover_url
+        self.assertIsNone(movie.title)
+        self.assertIsNone(movie.cover_url)
 
     def test_extras_attributes(self):
         movie = Movie("123", self.torrents)

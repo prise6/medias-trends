@@ -149,7 +149,6 @@ class PDbManager(DbManager):
     def imdb_object_to_db(obj: Union[Movie], update=False):
         db_imdb_obj = PIMDBObject.get_or_none(imdb_id=obj.imdb_id)
 
-        print(db_imdb_obj)
         if not db_imdb_obj:
             db_imdb_obj = PIMDBObject.create(
                 imdb_id=obj.imdb_id,

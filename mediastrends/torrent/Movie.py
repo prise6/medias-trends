@@ -87,7 +87,8 @@ class Movie:
             else:
                 attr_imdb_data = attr_imdb_call = attr.replace('_', ' ')
             if attr_imdb_data not in self.imdb_resource:
-                raise ValueError("Movie has no %s" % attr)
+                # raise ValueError("Movie has no %s" % attr)
+                return None
             self._extras[attr] = self.imdb_resource[attr_imdb_call]
         return self._extras.get(attr)
 
