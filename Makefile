@@ -1,6 +1,3 @@
-
-
-
 ##
 ## DEV COMMANDS - FROM OUTSIDE CONTAINER
 ##
@@ -38,3 +35,38 @@ flake8:
 
 install-prod:
 	pip install .
+
+
+## ----------------------------------------------------------------------------
+
+##
+## Makefile as a DAG
+##
+
+.DEFAULT_GOAL := get_movies_trends
+SHELL:=bash
+MD=mediastrends
+.PHONY := get_movie_trends
+
+add_movie_torrents:
+	python scripts/add_movie_torrents.py
+	touch add_movie_torrents
+
+stats_movie_torrents: add_movie_torrents
+	python scripts/stats_movies_torrents.py
+	touch stats_movie_torrents
+
+compute_movie_trends: stats_movie_torrents
+	@${MD} -vvvvv torrents trends compute -c movies >> logs/mediastrends.txt 2>&1 && \
+	${MD} -vvvvv torrents status -c movies >> logs/mediastrends.txt 2>&1 && \
+	${MD} -vvvvv torrents trends get -c movies >> logs/mediastrends.txt 2>&1
+	touch compute_movie_trends
+	
+get_movie_trends: compute_movie_trends
+	@${MD} -vvvvv movies get
+
+clean:
+	@rm -f add_movie_torrents
+	@rm -f stats_movie_torrents
+	@rm -f compute_movie_trends
+	@echo "... cleaned"

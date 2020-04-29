@@ -32,6 +32,7 @@ def torrents_add(test, indexer: str, category: list = None, **kwargs):
 
     for cat in category:
         logger.debug("Category: %s" % cat)
+        logger.debug("Indexer: %s" % indexer)
         if cat not in ['movies', 'series']:
             logger.error("category must be movies or series " % cat)
             break
@@ -41,9 +42,13 @@ def torrents_add(test, indexer: str, category: list = None, **kwargs):
             logger.error("Error during jacket creation: %s" % str(err))
             break
 
-        rss_content = client.get_rss_content()
-        rss_parser = TorznabJackettRSS(rss_content)
-        rss_parser.process_items()
+        try:
+            rss_content = client.get_rss_content()
+            rss_parser = TorznabJackettRSS(rss_content)
+            rss_parser.process_items()
+        except Exception as err:
+            logger.error("Error while contacting jackett: %s" % str(err))
+
         if len(rss_parser.items) == 0:
             logger.warning('RSS feed is empty')
             break
@@ -115,6 +120,9 @@ def torrents_stats(test, tracker_name: str, category: list = None, **kwargs):
 
     assert tracker_name in trackers_config
     assert isinstance(category, list)
+
+    logger.debug("Tracker: %s" % tracker_name)
+    logger.debug("Category: %s" % ', '.join(category))
 
     if not trackers_config.get(tracker_name).get('active', False):
         return nb_stats
