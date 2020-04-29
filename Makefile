@@ -16,6 +16,23 @@ docker-dev-exec:
 	docker exec -it mediastrends-core-dev /bin/bash
 
 
+docker-prod-build: package
+	docker-compose -f docker-compose-prod.yaml build
+
+docker-prod-up:
+	docker-compose -f docker-compose-prod.yaml up -d
+
+docker-prod-stop:
+	docker-compose -f docker-compose-prod.yaml stop
+
+docker-prod-exec:
+	docker exec -it mediastrends-core-prod /bin/bash
+
+
+package:
+	python3 setup.py sdist bdist_wheel
+
+
 ##
 ## DEV COMMANDS - INSIDE CORE CONTAINER
 ## 
@@ -53,7 +70,7 @@ add_movie_torrents:
 	touch add_movie_torrents
 
 stats_movie_torrents: add_movie_torrents
-	python scripts/stats_movies_torrents.py
+	python scripts/stats_movie_torrents.py
 	touch stats_movie_torrents
 
 compute_movie_trends: stats_movie_torrents
