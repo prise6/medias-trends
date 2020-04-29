@@ -138,7 +138,7 @@ class PDbManager(DbManager):
                 db_torrent.size = torrent.size
                 db_torrent.status = torrent.status
                 db_torrent.category = torrent.category
-                logger.debug("Torrent is different from database tracker")
+                logger.debug("Torrent is different from database torrent")
                 if update:
                     updated = db_torrent.save()
                     if updated > 0:
