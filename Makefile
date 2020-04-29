@@ -66,18 +66,19 @@ MD=mediastrends
 .PHONY := get_movie_trends
 
 add_movie_torrents:
-	python scripts/add_movie_torrents.py
-	touch add_movie_torrents
+	@python scripts/add_movie_torrents.py
+	@touch add_movie_torrents
 
 stats_movie_torrents: add_movie_torrents
-	python scripts/stats_movie_torrents.py
-	touch stats_movie_torrents
+	@python scripts/stats_movie_torrents.py
+	@touch stats_movie_torrents
 
 compute_movie_trends: stats_movie_torrents
 	@${MD} -vvvvv torrents trends compute -c movies >> logs/mediastrends.txt 2>&1 && \
 	${MD} -vvvvv torrents status -c movies >> logs/mediastrends.txt 2>&1 && \
-	${MD} -vvvvv torrents trends get -c movies >> logs/mediastrends.txt 2>&1
-	touch compute_movie_trends
+	${MD} -vvvvv torrents trends get -c movies >> logs/mediastrends.txt 2>&1 && \
+	${MD} -vvvvv movies compute >> logs/mediastrends.txt 2>&1
+	@touch compute_movie_trends
 	
 get_movie_trends: compute_movie_trends
 	@${MD} -vvvvv movies get

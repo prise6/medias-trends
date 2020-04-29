@@ -7,27 +7,10 @@ import datetime
 import mediastrends.tools.config as cfg
 from mediastrends import config, trackers_config, indexers_config, db_factory
 from mediastrends.tasks.torrents import torrents_add, torrents_stats, compute_trending, update_status, get_trending
-from mediastrends.tasks.database import sqlite_backup, backup_date, reset_database, reset_tables, load_sqlite_backup
+from mediastrends.tasks.database import sqlite_backup, backup_date, reset_database, reset_tables, load_sqlite_backup, create_database
 from mediastrends.tasks.movies import get_trending as get_movies_trending, compute_trending as compute_movies_trending
 
-"""
-mediastrends (CLI)
-1. database --config-dir --mode
-    1. reset
-        1. table [tables ...] --no-safe/--safe
-        2. db --safe/--no-safe
-    2. backup
-        1. save
-        2. load --backup-date
-2. torrents
-    1. add --tracker --category
-    2. stats --tracker --category
-    3. trends
-        1. compute --category --mindate --maxdate
-        2. get --category --mindate --maxdate
-    4. status --category
-3. tests (do do)
-"""
+
 #
 # Logging
 #
@@ -262,6 +245,15 @@ class DatabaseBackupLoadParser(AbstractParser):
         load_sqlite_backup(**kwargs)
 
 
+class DatabaseCreateParser(AbstractParser):
+
+    def build(self):
+        _argument_test(self.parser)
+
+    def task(self, **kwargs):
+        create_database(**kwargs)
+
+
 class MoviesTrendsGetParser(AbstractParser):
 
     def build(self):
@@ -353,6 +345,7 @@ class DatabaseSubParsers(AbstractSubParsers):
     def add_parsers(self):
         DatabaseResetSubParsers(self.subparsers.add_parser("reset", help="reset actions on table/database"), title="Reset tables or database")
         DatabaseBackupSubParsers(self.subparsers.add_parser("backup", help="backups actions"), title="save or load backup")
+        DatabaseCreateParser(self.subparsers.add_parser("create", help="Create database if not exist"))
 
 
 class TorrentsSubParsers(AbstractSubParsers):

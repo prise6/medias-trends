@@ -115,7 +115,7 @@ class Movie:
 def movies_from_title(title: str) -> List[Movie]:
     ia = tools_m.get_imdb_access()
     movies_results = ia.search_movie(title)
-    movies_results = [m for m in movies_results if m.get('kind') == 'movie']
+    movies_results = [m for m in movies_results if m.get('kind') in ['movie', 'tv movie']]
     movies = []
     for m in movies_results:
         movie = Movie(imdb_id=m.movieID)
@@ -131,11 +131,15 @@ def movies_from_group_torrents(groups: dict) -> List[Movie]:
     # movies dict with key = imdb_id
     movies = {}
     for title, infos in groups.items():
+        logger.debug("Trying to find movie with title: %s" % title)
         selected_movie = None
-        years = list(set([int(el.get('year', None)) for el in infos['parsed_names']]))
+        years = [el.get('year', 0) for el in infos['parsed_names'] if 'year' in el]
+        years = list(set(years))
         try:
             titles_movies = movies_from_title(title)
-            titles_movies = [m for m in titles_movies if m.year in years]
+            if years:
+                suspected_movies = [m for m in titles_movies if m.year in years]
+                titles_movies = suspected_movies if suspected_movies else titles_movies
         except imdb.IMDbError:
             logger.warning("Couldn't search for movie: %s" % (title))
             continue
