@@ -27,10 +27,10 @@ class PDbManager(DbManager):
     #
 
     def create_database(db_connection):
-        db_connection.create_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends], safe=True)
+        db_connection.create_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends, PIMDBObject], safe=True)
 
     def drop_database(db_connection):
-        db_connection.drop_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends])
+        db_connection.drop_tables([PTorrent, PTracker, PTorrentTracker, PPage, PStats, PTrends, PIMDBObject])
 
     #
     # DB to object
@@ -148,6 +148,7 @@ class PDbManager(DbManager):
 
     def imdb_object_to_db(obj: Union[Movie], update=False):
         db_imdb_obj = PIMDBObject.get_or_none(imdb_id=obj.imdb_id)
+        torrents_updated = 0
 
         if not db_imdb_obj:
             db_imdb_obj = PIMDBObject.create(
@@ -161,8 +162,9 @@ class PDbManager(DbManager):
             if update:
                 db_imdb_obj.save()
 
-        info_hashes_to_update = [torrent.info_hash for torrent in obj.torrents]
-        torrents_updated = PTorrent.update(imdb_object=obj.imdb_id).where(PTorrent.info_hash.in_(info_hashes_to_update)).execute()
+        if obj.torrents:
+            info_hashes_to_update = [torrent.info_hash for torrent in obj.torrents]
+            torrents_updated = PTorrent.update(imdb_object=obj.imdb_id).where(PTorrent.info_hash.in_(info_hashes_to_update)).execute()
 
         return db_imdb_obj, torrents_updated
 
@@ -173,6 +175,8 @@ class PDbManager(DbManager):
     def update(obj):
         class_name = obj.__class__.__name__.lower()
         method_to_call = "%s_to_db" % (class_name)
+        if method_to_call == "movie_to_db":
+            raise ValueError("Movies has to be updated with imdb_object_to_db/movie_to_db and update set to True")
         try:
             method = getattr(PDbManager, method_to_call)
             db_obj, _, updated = method(obj, update=True)
@@ -239,6 +243,7 @@ class PDbManager(DbManager):
             )
             if not created:
                 logger.debug("Trends already saved")
+        return db_trends, created
 
     #
     # GET DB BY ...

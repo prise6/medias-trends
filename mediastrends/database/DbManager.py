@@ -45,22 +45,22 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def tracker_to_db(tracker: Tracker):
+    def tracker_to_db(tracker: Tracker, update=False):
         return
 
     @abstractstaticmethod
-    def torrent_to_db(torrent: Torrent):
+    def torrent_to_db(torrent: Torrent, update=False):
         return
 
     @abstractstaticmethod
-    def imdb_object_to_db(obj: Union[Movie]):
+    def imdb_object_to_db(obj: Union[Movie], update=False):
         return
 
-    @abstractstaticmethod
-    def movie_to_db(movie: Movie):
+    @classmethod
+    def movie_to_db(cls, movie: Movie, update=False):
         if not isinstance(movie, Movie):
             raise TypeError("Movie must be instance of Movie")
-        return DbManager.imdb_object_to_db(movie)
+        return cls.imdb_object_to_db(movie, update)
 
     @abstractstaticmethod
     def update(obj):
@@ -96,6 +96,16 @@ class DbManager(ABC):
 
     @abstractmethod
     def get_stats_collections_by_status(status: list, category: list = None, min_date=None, max_date=datetime.datetime.now()):
+        """Fetch StatsCollection list by torrent
+
+        This function return a list of StatsCollection object for every torrent with status.
+
+        Args:
+            status (list): list of torrent status
+            category (list, optional): list of torrent category. Defaults to None.
+            min_date (datetime.datetime, optional): minimum date of stats. Defaults to None.
+            max_date (datetime.datetime, optional): maximum date of stats. Defaults to datetime.datetime.now().
+        """
         return
 
     @abstractstaticmethod
