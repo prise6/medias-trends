@@ -1,6 +1,7 @@
 import unittest
 import datetime
 import random
+from peewee import sqlite3
 from mediastrends import db_factory
 from mediastrends.database.peewee.PDbManager import PDbManager
 from mediastrends.torrent.Tracker import Tracker
@@ -241,6 +242,7 @@ class GetDb(InitDb):
         torrents = PDbManager.get_torrents_by_tracker(self.trackers[2])
         self.assertEqual(torrents, [])
 
+    @unittest.skipIf(sqlite3.sqlite_version_info < (3, 25), "Window function support was first added to SQLite with release version 3.25.0")
     def test_get_trending_torrents_by_category(self):
         torrents = PDbManager.get_trending_torrents_by_category(Torrent._CAT_MOVIE)
         self.assertEqual(2, len(torrents))
