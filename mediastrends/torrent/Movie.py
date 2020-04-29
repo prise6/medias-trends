@@ -15,6 +15,9 @@ class Movie:
     _DELAY = config.getint('retry', 'delay')
 
     def __init__(self, imdb_id: Union[int, str], torrents: List[Torrent] = None):
+        # init default values
+        self._torrents = None
+        self._imdb_id = None
         self.torrents = torrents
         self.imdb_id = imdb_id
         self._imdb_resource = None
