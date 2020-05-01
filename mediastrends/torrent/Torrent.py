@@ -24,6 +24,7 @@ class Torrent:
         self.size = size
         self._status = status
         self._category = category
+        self._imdb_id = None
 
     @property
     def info_hash(self):
@@ -76,6 +77,17 @@ class Torrent:
     @property
     def category(self):
         return self._category
+
+    @property
+    def imdb_id(self):
+        return self._imdb_id
+
+    @imdb_id.setter
+    def imdb_id(self, imdb_id: str):
+        if imdb_id and not isinstance(imdb_id, str):
+            raise ValueError("Imdb id must instance of string if not None")
+        self._imdb_id = imdb_id
+        return self
 
     def follow(self):
         self._status = 2

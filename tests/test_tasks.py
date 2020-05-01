@@ -86,7 +86,8 @@ class TorentsTasks(unittest.TestCase):
             'category': 5000,
             'link': 'link-to-torrentfile-2',
             'infohash': '85be94b120becfb44f94f97779c61633c7647628',
-            'size': 4000
+            'size': 4000,
+            'imdb': '2438644'
         }]
 
         # rss_parser items
@@ -126,7 +127,8 @@ class TorrentsAdd(TorentsTasks):
             self.assertTrue(elements['keep'])
             self.assertEqual(elements['trackers'][0].name, 'tracker_1')
             self.assertEqual(elements['trackers'][0].netloc, 'netloc:8080')
-            self.assertEqual(elements['torrent'].name, self.rss_parser_items[0].get('title'))
+            self.assertEqual(elements['torrent'].name, torznab_result.get('title'))
+            self.assertEqual(elements['torrent'].imdb_id, torznab_result.get('imdb'))
 
             mock_tf.return_value = {'tracker_urls': ['udp://netloc:5217']}
             elements = elements_from_torznab_result(torznab_result)
@@ -147,6 +149,7 @@ class TorrentsAdd(TorentsTasks):
         self.assertEqual(nb_torrents_added, 2)
 
         self.assertEqual(PDbManager.get_tracker_by_name("tracker_1").netloc, "netloc:8080")
+        self.assertEqual(PDbManager.get_torrent_by_hash("85be94b120becfb44f94f97779c61633c7647628").imdb_id, "2438644")
 
         nb_torrents_added = torrents_add(False, "indexer_1", ["series"])
         self.assertEqual(nb_torrents_added, 0)

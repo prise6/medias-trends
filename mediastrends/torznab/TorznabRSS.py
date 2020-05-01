@@ -21,7 +21,7 @@ _TORZNAB_RESULTS_FIELDS = {
     "magneturl": str,
     "rageid": int,
     "thetvdb": int,
-    "imdb": int,
+    "imdb": str,
     "seeders": int,
     "peers": int,
     "infohash": lambda ih: str(ih).lower(),
@@ -105,5 +105,8 @@ class TorznabJackettResult():
             size=self.get('size'),
             category=TorznabJackettResult.transform_category(self.get('category'))
         )
+        if self.get('imdb', None):
+            logger.debug("Imdb_id is already known")
+            torrent_file.imdb_id = self.get('imdb', None)
 
         return torrent_file

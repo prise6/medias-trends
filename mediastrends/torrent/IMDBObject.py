@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import List, Union
 import logging
 import imdb
@@ -9,7 +10,7 @@ from .Torrent import Torrent
 logger = logging.getLogger(__name__)
 
 
-class Movie:
+class IMDBObject(ABC):
 
     _RETRIES = config.getint('retry', 'tries')
     _DELAY = config.getint('retry', 'delay')
@@ -108,9 +109,13 @@ class Movie:
         return text
 
 
+class Movie(IMDBObject):
+    pass
+
 #
 # Class instanciation
 #
+
 
 def movies_from_title(title: str) -> List[Movie]:
     ia = tools_m.get_imdb_access()
@@ -131,26 +136,33 @@ def movies_from_group_torrents(groups: dict) -> List[Movie]:
     # movies dict with key = imdb_id
     movies = {}
     for title, infos in groups.items():
-        logger.debug("Trying to find movie with title: %s" % title)
         selected_movie = None
-        years = [el.get('year', 0) for el in infos['parsed_names'] if 'year' in el]
-        years = list(set(years))
-        try:
-            titles_movies = movies_from_title(title)
-            if years:
-                suspected_movies = [m for m in titles_movies if m.year in years]
-                titles_movies = suspected_movies if suspected_movies else titles_movies
-        except imdb.IMDbError:
-            logger.warning("Couldn't search for movie: %s" % (title))
-            continue
-        if not titles_movies:
-            # (trying another title from infos if needed)
-            logger.warning("No movies found for title: %s" % (title))
-            continue
-        if len(titles_movies) >= 1:
-            # suppose first one is the one
-            # (see if year could be used if needed)
-            selected_movie = titles_movies[0]
+        imdb_ids = [torrent.imdb_id for torrent in infos['torrents'] if torrent.imdb_id]
+        imdb_ids = list(set(imdb_ids))
+        if imdb_ids and len(imdb_ids) == 1:
+            logger.debug("Movie found with imdb_id saved: %s" % title)
+            selected_movie = Movie(imdb_ids[0])
+
+        if selected_movie is None:
+            logger.debug("Trying to find movie with title: %s" % title)
+            years = [el.get('year', 0) for el in infos['parsed_names'] if 'year' in el]
+            years = list(set(years))
+            try:
+                titles_movies = movies_from_title(title)
+                if years:
+                    suspected_movies = [m for m in titles_movies if m.year in years]
+                    titles_movies = suspected_movies if suspected_movies else titles_movies
+            except imdb.IMDbError:
+                logger.warning("Couldn't search for movie: %s" % (title))
+                continue
+            if not titles_movies:
+                # (trying another title from infos if needed)
+                logger.warning("No movies found for title: %s" % (title))
+                continue
+            if len(titles_movies) >= 1:
+                # suppose first one is the one
+                # (see if year could be used if needed)
+                selected_movie = titles_movies[0]
 
         if selected_movie.imdb_id in movies:
             same_movie = movies.get(selected_movie.imdb_id)

@@ -5,8 +5,8 @@ import datetime
 import imdb
 import mediastrends.tools.movies as tools_m
 from mediastrends.torrent.Torrent import Torrent
-from mediastrends.torrent.Movie import Movie
-from mediastrends.torrent.Movie import movies_from_group_torrents, movies_from_title
+from mediastrends.torrent.IMDBObject import Movie
+from mediastrends.torrent.IMDBObject import movies_from_group_torrents, movies_from_title
 
 
 def generate_torrents(nb):
@@ -135,7 +135,7 @@ class MovieCreation(unittest.TestCase):
         results = movies_from_title("title")
         self.assertIsInstance(results, list)
 
-    @patch("mediastrends.torrent.Movie.movies_from_title")
+    @patch("mediastrends.torrent.IMDBObject.movies_from_title")
     def test_movies_from_group_torrents(self, mock):
         fake_movie_1 = Movie(imdb_id='123')
         fake_movie_1._extras['year'] = 2020

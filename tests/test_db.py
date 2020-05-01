@@ -6,7 +6,7 @@ from mediastrends import db_factory
 from mediastrends.database.peewee.PDbManager import PDbManager
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Torrent import Torrent
-from mediastrends.torrent.Movie import Movie
+from mediastrends.torrent.IMDBObject import Movie
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
 from mediastrends.database.peewee.PTracker import PTracker
@@ -118,10 +118,10 @@ class ImdbObjInit(InitDb):
 
     def test_imdb_object_to_db_with_torrents(self):
         movie = self.movies[0]
-        movie.torrents = self.torrents
+        movie.torrents = self.torrents[1:]
         db_imdb_obj, torrents_updated = PDbManager.imdb_object_to_db(movie)
         self.assertIsInstance(db_imdb_obj, PIMDBObject)
-        self.assertEqual(torrents_updated, 3)
+        self.assertEqual(torrents_updated, 2)
 
 
 class UpdateInit(InitDb):
