@@ -29,8 +29,9 @@ docker-prod-exec:
 	docker exec -it mediastrends-core-prod /bin/bash
 
 
-package:
+package: .git/HEAD
 	python3 setup.py sdist bdist_wheel
+	touch package
 
 
 ##
@@ -63,6 +64,7 @@ install-prod:
 .DEFAULT_GOAL := get_movies_trends
 SHELL:=bash
 MD=mediastrends
+LOG_FILE=logs/mediastrends_${MEDIASTRENDS_MODE}.txt
 .PHONY := get_movie_trends
 
 add_movie_torrents:
@@ -74,10 +76,10 @@ stats_movie_torrents: add_movie_torrents
 	@touch stats_movie_torrents
 
 compute_movie_trends: stats_movie_torrents
-	@${MD} -vvvvv torrents trends compute -c movies >> logs/mediastrends.txt 2>&1 && \
-	${MD} -vvvvv torrents status -c movies >> logs/mediastrends.txt 2>&1 && \
-	${MD} -vvvvv torrents trends get -c movies >> logs/mediastrends.txt 2>&1 && \
-	${MD} -vvvvv movies compute >> logs/mediastrends.txt 2>&1
+	@${MD} -vvvvv torrents trends compute -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv torrents status -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv torrents trends get -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv movies compute >> ${LOG_FILE} 2>&1
 	@touch compute_movie_trends
 	
 get_movie_trends: compute_movie_trends

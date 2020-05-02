@@ -9,6 +9,7 @@ services:
     image: mediastrends-core-prod:1.0.0
     container_name: mediastrends-core-prod
     user: mediastrends
+    command: tail -f /dev/null
     depends_on:
       - jackett-prod
     volumes:
@@ -16,6 +17,7 @@ services:
       - "${PWD}/sqlite/:/app/sqlite"
       - "${PWD}/config/indexers.yaml:/app/config/indexers.yaml"
       - "${PWD}/config/trackers.yaml:/app/config/trackers.yaml"
+      - "${PWD}/logs/:/app/logs"
     environment:
       - TZ=Europe/Paris
       - MEDIASTRENDS_MODE=prod
@@ -25,6 +27,8 @@ services:
     container_name: mediastrends-jackett-prod
     environment:
       - "TZ=Europe/Paris"
+      - "PUID=1000"
+      - "PGID=1000"
     volumes:
       - ${PWD}/jackett/config:/config
       - ${PWD}/jackett/downloads:/downloads

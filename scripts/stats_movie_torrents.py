@@ -3,6 +3,9 @@ import logging
 import mediastrends
 import mediastrends.tasks.torrents as tasks
 
+mode = os.getenv('MEDIASTRENDS_MODE')
+log_file = os.path.join(mediastrends.config.get('directory', 'logs'), 'mediastrends_' + mode + '.txt')
+
 dict_config = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -15,7 +18,7 @@ dict_config = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(mediastrends.config.get('directory', 'logs'), 'mediastrends.txt'),
+            'filename': log_file,
             'mode': 'a',
             'formatter': 'standard'
         },
