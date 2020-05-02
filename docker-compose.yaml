@@ -9,7 +9,7 @@ services:
     image: mediastrends-core-prod:1.0.0
     container_name: mediastrends-core-prod
     user: mediastrends
-    command: tail -f /dev/null
+    command: get_movie_trends
     depends_on:
       - jackett-prod
     volumes:

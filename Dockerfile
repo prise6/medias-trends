@@ -18,6 +18,9 @@ RUN chmod +x /tini
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh ./wait-for-it.sh
+RUN chmod +x ./wait-for-it.sh
+
 COPY ./dist/mediastrends-$VERSION-py3-none-any.whl .
 
 RUN pip install --upgrade pip && \

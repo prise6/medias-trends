@@ -17,13 +17,13 @@ docker-dev-exec:
 
 
 docker-prod-build: package
-	docker-compose -f docker-compose-prod.yaml build
+	docker-compose build
 
 docker-prod-up:
-	docker-compose -f docker-compose-prod.yaml up -d
+	docker-compose up -d
 
 docker-prod-stop:
-	docker-compose -f docker-compose-prod.yaml stop
+	docker-compose stop
 
 docker-prod-exec:
 	docker exec -it mediastrends-core-prod /bin/bash
