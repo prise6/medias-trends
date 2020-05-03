@@ -1,7 +1,7 @@
 import logging
 from mediastrends import db_factory
 from mediastrends.database.peewee.PDbManager import PDbManager
-from mediastrends.torrent.Movie import movies_from_torrents
+from mediastrends.torrent.IMDBObject import movies_from_torrents
 from mediastrends.torrent.Torrent import Torrent
 
 logger = logging.getLogger(__name__)

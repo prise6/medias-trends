@@ -24,6 +24,12 @@ docker/Makefile
 docker/requirements.txt
 docker/start-dev.sh
 
+# makefile checkpoints
+add_movie_torrents
+compute_movie_trends
+stats_movie_torrents
+package
+
 ###### DEFAULT ######
 # DotEnv configuration
 .env

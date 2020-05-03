@@ -1,12 +1,12 @@
 import datetime
 import logging
 import peewee
-from typing import Union
+from typing import Union, List
 from peewee import fn
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
 from mediastrends.torrent.Page import Page
-from mediastrends.torrent.Movie import Movie
+from mediastrends.torrent.IMDBObject import Movie
 from mediastrends.stats import Stats
 from mediastrends.stats import StatsCollection
 from ..DbManager import DbManager
@@ -45,6 +45,7 @@ class PDbManager(DbManager):
             db_torrent.status,
             db_torrent.category,
         )
+        torrent.imdb_id = db_torrent.imdb_id
         return torrent
 
     def db_to_tracker(db_tracker: PTracker):
@@ -73,10 +74,10 @@ class PDbManager(DbManager):
         )
         return stats
 
-    def db_to_movie(db_imdb_obj: PIMDBObject) -> Movie:
+    def db_to_movie(db_imdb_obj: PIMDBObject, db_torrents: List[PTorrent]) -> Movie:
         movie = Movie(
             imdb_id=db_imdb_obj.imdb_id,
-            torrents=[PDbManager.db_to_torrent(t) for t in db_imdb_obj.torrents]
+            torrents=[PDbManager.db_to_torrent(db_t) for db_t in db_torrents]
         )
         movie._extras['title'] = db_imdb_obj.title
         movie._extras['rating'] = db_imdb_obj.rating
@@ -119,7 +120,7 @@ class PDbManager(DbManager):
             raise ValueError("torrent must be Torrent instance")
         db_torrent, created = PTorrent.get_or_create(
             info_hash=torrent.info_hash,
-            defaults={'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category}
+            defaults={'name': torrent.name, 'pub_date': torrent.pub_date, 'size': torrent.size, 'status': torrent.status, 'category': torrent.category, 'imdb_id': torrent.imdb_id}
         )
         updated = 0
         if created:
@@ -132,13 +133,15 @@ class PDbManager(DbManager):
                 assert db_torrent.size == torrent.size
                 assert db_torrent.status == torrent.status
                 assert db_torrent.category == torrent.category
+                assert db_torrent.imdb_id == torrent.imdb_id
             except AssertionError:
                 db_torrent.name = torrent.name
                 db_torrent.pub_date = torrent.pub_date
                 db_torrent.size = torrent.size
                 db_torrent.status = torrent.status
                 db_torrent.category = torrent.category
-                logger.debug("Torrent is different from database tracker")
+                db_torrent.imdb_id = torrent.imdb_id
+                logger.debug("Torrent is different from database torrent")
                 if update:
                     updated = db_torrent.save()
                     if updated > 0:
@@ -164,7 +167,7 @@ class PDbManager(DbManager):
 
         if obj.torrents:
             info_hashes_to_update = [torrent.info_hash for torrent in obj.torrents]
-            torrents_updated = PTorrent.update(imdb_object=obj.imdb_id).where(PTorrent.info_hash.in_(info_hashes_to_update)).execute()
+            torrents_updated = PTorrent.update(imdb_id=obj.imdb_id).where(PTorrent.info_hash.in_(info_hashes_to_update)).execute()
 
         return db_imdb_obj, torrents_updated
 
@@ -373,18 +376,21 @@ class PDbManager(DbManager):
         ).alias("row_number")).where(PTrends.valid_date.between(min_date, max_date))
 
         # see later if PTrend columns are needed
-        selected_torrents = PTorrent.select(PTorrent.imdb_object).join(sub_q, on=(
+        selected_torrents = PTorrent.select().join(sub_q, on=(
             (sub_q.c.row_number == 1)
             & (sub_q.c.torrent_id == PTorrent.id)
         ))
-        selected_torrents = selected_torrents.where(PTorrent.imdb_object.is_null(False)).distinct()
+        selected_torrents = selected_torrents.where(PTorrent.imdb_id.is_null(False))
 
         # fixing peewee issue (and no time)
-        selected_imdb_obj_id = selected_torrents.tuples()
-        movies = PIMDBObject.select().where(PIMDBObject.imdb_id.in_([el[0] for el in selected_imdb_obj_id]))
-        movies_with_torrents = peewee.prefetch(movies, PTorrent.select())
+        selected_imdb_id = selected_torrents.select(PTorrent.imdb_id).distinct().tuples()
+        db_movies = PIMDBObject.select().where(PIMDBObject.imdb_id.in_([el[0] for el in selected_imdb_id]))
 
-        return [PDbManager.db_to_movie(db_movie) for db_movie in movies_with_torrents]
+        movies_with_torrents = []
+        for db_movie in db_movies:
+            movies_with_torrents.append(PDbManager.db_to_movie(db_movie, [db_t for db_t in selected_torrents if db_t.imdb_id == db_movie.imdb_id]))
+
+        return movies_with_torrents
 
     #
     # SPECIAL REQUESTS

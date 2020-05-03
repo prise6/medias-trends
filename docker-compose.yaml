@@ -1,0 +1,40 @@
+version: "3"
+services:
+  core-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mediastrends-core-prod:1.0.0
+    container_name: mediastrends-core-prod
+    user: root
+    command: get_movie_trends
+    depends_on:
+      - jackett-prod
+    volumes:
+      - "${PWD}/config/mediastrends.prod.ini:/app/mediastrends.prod.ini"
+      - "${PWD}/sqlite/:/app/sqlite"
+      - "${PWD}/config/indexers.yaml:/app/config/indexers.yaml"
+      - "${PWD}/config/trackers.yaml:/app/config/trackers.yaml"
+      - "${PWD}/logs/:/app/logs"
+    environment:
+      - TZ=Europe/Paris
+      - MEDIASTRENDS_MODE=prod
+      - PUID=1000
+      - PGID=1000
+
+  jackett-prod:
+    image: linuxserver/jackett:latest
+    container_name: mediastrends-jackett-prod
+    environment:
+      - "TZ=Europe/Paris"
+      - "PUID=1000"
+      - "PGID=1000"
+    volumes:
+      - ${PWD}/jackett/config:/config
+      - ${PWD}/jackett/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=9117"
+      - "traefik.main.frontend.entryPoints=http"
+    ports:
+      - 127.0.0.1:29117:9117

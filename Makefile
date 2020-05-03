@@ -1,6 +1,3 @@
-
-
-
 ##
 ## DEV COMMANDS - FROM OUTSIDE CONTAINER
 ##
@@ -17,6 +14,24 @@ docker-dev-stop:
 
 docker-dev-exec:
 	docker exec -it mediastrends-core-dev /bin/bash
+
+
+docker-prod-build: package
+	docker-compose build
+
+docker-prod-up:
+	docker-compose up -d
+
+docker-prod-stop:
+	docker-compose stop
+
+docker-prod-exec:
+	docker exec -it mediastrends-core-prod /bin/bash
+
+
+package: .git/HEAD
+	python3 setup.py sdist bdist_wheel
+	touch package
 
 
 ##
@@ -38,3 +53,40 @@ flake8:
 
 install-prod:
 	pip install .
+
+
+## ----------------------------------------------------------------------------
+
+##
+## Makefile as a DAG
+##
+
+.DEFAULT_GOAL := get_movies_trends
+SHELL:=bash
+MD=mediastrends
+LOG_FILE=logs/mediastrends_${MEDIASTRENDS_MODE}.txt
+.PHONY := get_movie_trends
+
+add_movie_torrents:
+	@python scripts/add_movie_torrents.py
+	@touch add_movie_torrents
+
+stats_movie_torrents: add_movie_torrents
+	@python scripts/stats_movie_torrents.py
+	@touch stats_movie_torrents
+
+compute_movie_trends: stats_movie_torrents
+	@${MD} -vvvvv torrents trends compute -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv torrents status -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv torrents trends get -c movies >> ${LOG_FILE} 2>&1 && \
+	${MD} -vvvvv movies compute >> ${LOG_FILE} 2>&1
+	@touch compute_movie_trends
+	
+get_movie_trends: compute_movie_trends
+	@${MD} -vvvvv movies get
+
+clean:
+	@rm -f add_movie_torrents
+	@rm -f stats_movie_torrents
+	@rm -f compute_movie_trends
+	@echo "... cleaned"

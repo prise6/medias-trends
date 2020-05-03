@@ -18,6 +18,7 @@ class TestCLI(unittest.TestCase):
         'mediastrends.cli.get_trending',
         'mediastrends.cli.reset_tables',
         'mediastrends.cli.reset_database',
+        'mediastrends.cli.create_database',
         'mediastrends.cli.sqlite_backup',
         'mediastrends.cli.load_sqlite_backup',
         'mediastrends.cli.get_movies_trending',
@@ -151,6 +152,12 @@ class TestCLI(unittest.TestCase):
         parser.execute(args)
         self.assertTrue(self.mocks['load_sqlite_backup'].called)
         self.assertEqual(parser.parsed_args_dict.get('backup_date'), '20200401-1100')
+
+    def test_create_database_parser(self):
+        parser = cli.DatabaseCreateParser()
+        args = ''
+        parser.execute(args)
+        self.assertTrue(self.mocks['create_database'].called)
 
     def test_movies_trends_get_parser(self):
         parser = cli.MoviesTrendsGetParser()

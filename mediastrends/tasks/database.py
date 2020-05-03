@@ -66,6 +66,16 @@ def reset_database(test, no_backup=False, **kwargs):
         db.create_tables(models)
 
 
+def create_database(test, **kwargs):
+    if test:
+        logger.debug("reset_database task")
+        return
+
+    models = [v for v in _TABLES_MODELS.values()]
+    with db_factory.get_instance() as db:
+        db.create_tables(models)
+
+
 def sqlite_backup(test, **kwargs):
     if test:
         logger.debug("sqlite_backup task")

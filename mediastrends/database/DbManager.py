@@ -3,7 +3,7 @@ from typing import Union
 from abc import ABC, abstractmethod, abstractstaticmethod
 from mediastrends.torrent.Torrent import Torrent
 from mediastrends.torrent.Tracker import Tracker
-from mediastrends.torrent.Movie import Movie
+from mediastrends.torrent.IMDBObject import Movie
 from mediastrends.torrent.Page import Page
 from mediastrends.stats.Stats import Stats
 from mediastrends.stats.StatsCollection import StatsCollection
