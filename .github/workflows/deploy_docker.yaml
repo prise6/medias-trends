@@ -1,0 +1,30 @@
+name: Docker image
+
+on:
+  push:
+    branches:
+      - dev-docker
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.actor == github.event.repository.owner.login
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Build python package
+        run: |
+          python setup.py sdist bdist_wheel
+      - name: Upload python wheel 
+        uses: actions/upload-artifact@v1
+        with:
+          name: mediastrends_wheel
+          path: dist/*.whl
