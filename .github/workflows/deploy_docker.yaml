@@ -4,11 +4,18 @@ on:
   push:
     branches:
       - dev-docker
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+  release:
+    types: [published]
+  
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.actor == github.event.repository.owner.login
+    if: github.event.pull_request.merged
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.7
