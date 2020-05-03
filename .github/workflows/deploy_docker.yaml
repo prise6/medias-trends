@@ -42,7 +42,7 @@ jobs:
           name: mediastrends_wheel
           path: dist
       - name: Build docker image
-        uses: actions/build-push-action@v1
+        uses: docker/build-push-action@v1
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
