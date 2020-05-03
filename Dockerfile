@@ -39,4 +39,4 @@ COPY Makefile .
 
 ENTRYPOINT ["/tini", "--", "/entrypoint.sh"]
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["get_movie_trends"]
