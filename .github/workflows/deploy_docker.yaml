@@ -33,13 +33,20 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
+      - name: Create dist directory
+        run: |
+          mkdir dist
       - name: Download python wheel package
         uses: actions/download-artifact@v2
         with:
           name: mediastrends_wheel
-      - name: Details
-        run: |
-          ls -la
-          mkdir dist
-          mv *.whl dist/
-          ls -la dist/
+          path: dist
+      - name: Build docker image
+        uses: actions/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: prise6/medias-trends/mediastrends-core
+          tag_with_sha: True
+          tag_with_ref: True
