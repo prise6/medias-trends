@@ -42,11 +42,20 @@ jobs:
           name: mediastrends_wheel
           path: dist
       - name: Build docker image
+        if: github.event_name == 'release'
         uses: docker/build-push-action@v1
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: prise6/medias-trends/mediastrends-core
+          tag_with_sha: True
+          tag_with_ref: True
+      - name: Build docker image
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: prise6/mediastrends
           tag_with_sha: True
           tag_with_ref: True
