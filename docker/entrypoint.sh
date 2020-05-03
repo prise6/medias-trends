@@ -1,6 +1,27 @@
 #!/bin/sh
 set -e
 
+if [ $(id -u) -eq 0 ]; then
+    if ! [ -z "${PUID}" ]; then
+        actual_puid=`id -u mediastrends`
+        if ! [ $actual_puid -eq ${PUID} ]; then
+            echo "Changing uid $actual_puid to ${PUID} ..."
+            usermod -u ${PUID} mediastrends
+            chown -R mediastrends $WORKDIR
+        fi
+    fi
+
+    if ! [ -z "${PGID}" ]; then
+        actual_pgid=`id -g mediastrends`
+        if ! [ $actual_pgid -eq ${PGID} ]; then
+            echo "Changing gid $actual_pgid to ${PGID} ..."
+            groupmod -g ${PGID} mediastrends
+            chgrp -R mediastrends $WORKDIR
+        fi
+    fi
+fi
+
+
 if [ -z "${JACKETT}" ]; then
     JACKETT="jackett-prod:9117"
 else
@@ -31,11 +52,9 @@ if [ "$1" = 'stats_movie_torrents' ] \
     || [ "$1" = 'add_movie_torrents' ] \
     || [ "$1" = 'compute_movie_trends' ] \
     || [ "$1" = 'get_movie_trends' ]; then
-    mediastrends database create
-    # exec make "$@"
-    CMD="./wait-for-it.sh $JACKETT -- $CMD make $@"
+    CMD="./wait-for-it.sh $JACKETT -- mediastrends database create && make $@"
 else
     CMD="$@"
 fi
 
-exec $CMD
+exec su - mediastrends -w TZ,MEDIASTRENDS_MODE,PUID,PGID -s /bin/bash -c "$CMD"

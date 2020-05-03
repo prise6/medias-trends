@@ -4,11 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        USER_UID: 1000
     image: mediastrends-core-prod:1.0.0
     container_name: mediastrends-core-prod
-    user: mediastrends
+    user: root
     command: get_movie_trends
     depends_on:
       - jackett-prod
@@ -21,6 +19,8 @@ services:
     environment:
       - TZ=Europe/Paris
       - MEDIASTRENDS_MODE=prod
+      - PUID=1000
+      - PGID=1000
 
   jackett-prod:
     image: linuxserver/jackett:latest

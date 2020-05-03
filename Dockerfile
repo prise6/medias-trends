@@ -1,9 +1,9 @@
 ARG BASE_CONTAINER=python:3.7-buster
 FROM $BASE_CONTAINER
 
-ARG USERNAME=mediastrends
-ARG USER_UID=1001
-ARG USER_GID=$USER_UID
+ENV USERNAME=mediastrends
+ARG PUID=1001
+ARG PGID=1001
 ARG WORKDIR=/app
 ARG VERSION=1.0.0
 
@@ -28,11 +28,9 @@ RUN pip install --upgrade pip && \
     pip install git+git://github.com/platelminto/parse-torrent-name.git@d3dbf4c7dcc30990b10e88e93596ca1e8afa2c8b#egg=parse-torrent-name && \
     rm -f *.whl
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && chown -R $USER_UID:$USER_GID $WORKDIR
-
-USER $USERNAME
+RUN groupadd --gid $PGID $USERNAME \
+    && useradd --uid $PUID --gid $PGID -d $WORKDIR $USERNAME \
+    && chown -R $PUID:$PGID $WORKDIR
 
 RUN mkdir -p $WORKDIR/scripts $WORKDIR/logs
 
