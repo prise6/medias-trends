@@ -57,4 +57,8 @@ else
     CMD="$@"
 fi
 
-exec su - mediastrends -w TZ,MEDIASTRENDS_MODE,PUID,PGID -s /bin/bash -c "$CMD"
+if [ $(id -u) -eq 0 ]; then
+    exec su - mediastrends -w TZ,MEDIASTRENDS_MODE,PUID,PGID -s /bin/bash -c "$CMD"
+else
+    exec "$CMD"
+fi
