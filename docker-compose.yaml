@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: mediastrends-core-prod:1.0.0
+    image: mediastrends-core-prod:0.1.1
     container_name: mediastrends-core-prod
     user: root
     command: get_movie_trends
