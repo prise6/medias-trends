@@ -14,5 +14,5 @@ bencode.py==2.1.0
 flake8==3.7.9
 imdbpy==6.8
 textdistance==4.2.0
-scikit-learn==0.22.2
+scikit-learn==0.22
 git+git://github.com/platelminto/parse-torrent-name.git@d3dbf4c#egg=parse-torrent-name
