@@ -23,6 +23,12 @@ RUN chmod +x ./wait-for-it.sh
 
 COPY ./dist/mediastrends-$VERSION-py3-none-any.whl .
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+	apt-get install --no-install-recommends --yes python3-pandas && \
+	rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages
+
 RUN pip install --upgrade pip && \
     pip install mediastrends-$VERSION-py3-none-any.whl && \
     pip install git+git://github.com/platelminto/parse-torrent-name.git@d3dbf4c7dcc30990b10e88e93596ca1e8afa2c8b#egg=parse-torrent-name && \
