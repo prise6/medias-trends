@@ -75,12 +75,12 @@ jobs:
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+          [ "$VERSION" == "merge" ] && VERSION=latest
 
           echo $IMAGE_NAME:$VERSION
 
           docker buildx build \
-            --platform linux/arm/v7 \
+            --platform linux/amd64,linux/arm/v6 \
             --push \
             --tag $IMAGE_NAME:$VERSION \
             --file Dockerfile .
