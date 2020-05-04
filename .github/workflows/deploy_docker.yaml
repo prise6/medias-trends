@@ -57,11 +57,17 @@ jobs:
           repository: prise6/medias-trends/mediastrends-core
           tag_with_sha: True
           tag_with_ref: True
-      - name: Build docker image
-        uses: zmingxie/docker_buildx@master
+      - name: Set up Docker Buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
         with:
-          publish: True
-          imageName: mediastrends
-          tag: latest
-          dockerHubUser: ${{ secrets.DOCKER_USERNAME }}
-          dockerHubPassword: ${{ secrets.DOCKER_PASSWORD }}
+          version: latest
+      - name: Login dockerhub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Build docker image with buildx
+        run: |
+          docker buildx build --platform linux/arm/v7 \
+            --output "type=image,push=true"
+            --tag mediastrends:latest
+            --file Dockerfile .
+
