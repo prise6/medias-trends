@@ -68,7 +68,7 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/arm/v7 \
-            --output "type=image,push=true" \
+            --push \
             --tag mediastrends:latest \
             --file Dockerfile .
       - name: Clear
