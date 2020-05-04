@@ -24,7 +24,7 @@ RUN chmod +x ./wait-for-it.sh
 COPY ./dist/mediastrends-$VERSION-py3-none-any.whl .
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-	apt-get install --no-install-recommends --yes python3-pandas && \
+	apt-get install --no-install-recommends --yes python3-pandas python3-scipy && \
 	rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages
