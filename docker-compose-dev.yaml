@@ -7,7 +7,7 @@ services:
       args:
         USER_UID: 1000
         WORKDIR: /package
-    image: mediastrends-core-dev:0.1.0
+    image: mediastrends-core-dev:0.1.1
     container_name: mediastrends-core-dev
     user: vscode
     volumes:
