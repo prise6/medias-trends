@@ -28,7 +28,8 @@ RUN chmod +x ./wait-for-it.sh
 COPY ./dist/mediastrends-$VERSION-py3-none-any.whl .
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-	apt-get install --no-install-recommends --yes python3-pandas \
+	apt-get install --no-install-recommends --yes \
+    python3-pandas \
     python3-scipy python3-sklearn python3-sqlalchemy \
     python3-lxml python3-multidict python3-yarl \
     tini=0.18.0-1 && \
