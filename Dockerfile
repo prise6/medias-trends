@@ -6,13 +6,14 @@ ARG PUID=1001
 ARG PGID=1001
 ARG WORKDIR=/app
 ARG VERSION=0.1.1
+ARG TARGETARCH=amd64
 
 WORKDIR $WORKDIR
 ENV WORKDIR=$WORKDIR
 ENV MEDIASTRENDS_DIRCONF=$WORKDIR
 
 ENV TINI_VERSION v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
 
 COPY docker/entrypoint.sh /entrypoint.sh
