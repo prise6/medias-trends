@@ -58,7 +58,7 @@ else
 fi
 
 if [ $(id -u) -eq 0 ]; then
-    exec su - mediastrends -w TZ,MEDIASTRENDS_MODE,PUID,PGID -s /bin/bash -c "$CMD"
+    exec su - mediastrends -w TZ,MEDIASTRENDS_MODE,PUID,PGID,PYTHONPATH -s /bin/bash -c "$CMD"
 else
-    exec "$CMD"
+    exec $CMD
 fi

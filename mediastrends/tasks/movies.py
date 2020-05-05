@@ -12,10 +12,17 @@ def compute_trending(test, mindate=None, maxdate=None, **kwargs):
     if test:
         logger.debug("get_trending task")
         return
-    with db_factory.get_instance():
-        trendings_torrents = PDbManager.get_trending_torrents_by_category(Torrent._CAT_MOVIE, mindate, maxdate)
 
-    trendings_movies = movies_from_torrents([t for t, _, _ in trendings_torrents])
+    trendings_movies = []
+    
+    try:
+        with db_factory.get_instance():
+            trendings_torrents = PDbManager.get_trending_torrents_by_category(Torrent._CAT_MOVIE, mindate, maxdate)
+
+        trendings_movies = movies_from_torrents([t for t, _, _ in trendings_torrents])
+    except ValueError as err:
+        logger.warning(err)
+        return
 
     with db_factory.get_instance():
         for movie in trendings_movies:
@@ -28,13 +35,18 @@ def compute_trending(test, mindate=None, maxdate=None, **kwargs):
 
 # region
 def get_trending(test, mindate=None, maxdate=None, **kwargs):
+
+    results = None
+
     if test:
         logger.debug("get_trending task")
         return
-    with db_factory.get_instance():
-        results = PDbManager.get_trending_movies()
-        for item in results:
-            print(item)
-
+    try:
+        with db_factory.get_instance():
+            results = PDbManager.get_trending_movies()
+            for item in results:
+                print(item)
+    except ValueError as err:
+        logger.warning(err)
     return results
 # endregion

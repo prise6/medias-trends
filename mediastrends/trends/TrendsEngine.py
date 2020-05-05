@@ -65,7 +65,7 @@ class NormalizedTrendsEngine(TrendsEngine):
         score_df['score_normalized'] = score_df['score'] / score_df['score_max'] * 100
         score_df = score_df.groupby([pd.Grouper('sc_index'), pd.Grouper('tracker_name')]).last().groupby(['sc_index'])[['score_normalized']].mean().round(2)
 
-        return score_df.score_normalized.to_list()
+        return score_df.score_normalized.tolist()
 
     def score(self, stats_collection: StatsCollection):
         logger.warning('NormalizedTrendsEngine must have other stats_collection to score more precisely')

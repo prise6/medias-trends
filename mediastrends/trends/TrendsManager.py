@@ -44,6 +44,9 @@ class TrendsManager():
 
         logger.debug("Number of torrents to keep: %s", nb_to_keep)
 
+        if nb_to_keep == 0:
+            return self
+
         for sc in stats_collections:
             df = sc.dataframe
             sc.dataframe = df[:self._maxdate]
