@@ -80,7 +80,7 @@ jobs:
           echo $IMAGE_NAME:$VERSION
 
           docker buildx build \
-            --platform linux/amd64,linux/arm/v6 \
+            --platform linux/amd64,linux/arm/v7 \
             --push \
             --tag $IMAGE_NAME:$VERSION \
             --file Dockerfile .
