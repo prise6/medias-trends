@@ -9,7 +9,7 @@ on:
     types: [published]
   push:
     branches:
-      - master
+      - dev-docker
 
 env:
   IMAGE_NAME: prise6/mediastrends
