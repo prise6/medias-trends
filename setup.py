@@ -23,6 +23,6 @@ setup(
     long_description_content_type="text/markdown",
     author='prise6',
     author_email="vieille.francois@gmail.com",
-    license='NeedToBeDetermined',
+    license='GNU GPLv3',
     python_requires='>=3.6'
 )

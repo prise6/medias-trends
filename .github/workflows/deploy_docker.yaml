@@ -1,10 +1,6 @@
 name: Docker image
 
 on:
-  pull_request:
-    # types: [closed]
-    branches:
-      - master
   release:
     types: [published]
   push:
@@ -17,7 +13,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # if: github.event.pull_request.merged
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.7
@@ -58,7 +53,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: prise6/medias-trends/mediastrends-core
-          tag_with_sha: True
           tag_with_ref: True
       - name: Set up Docker Buildx
         uses: crazy-max/ghaction-docker-buildx@v1
@@ -75,7 +69,7 @@ jobs:
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "merge" ] && VERSION=latest
+          [ "$VERSION" == "master" ] && VERSION=latest
 
           echo $IMAGE_NAME:$VERSION
 
