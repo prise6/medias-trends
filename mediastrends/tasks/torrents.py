@@ -196,16 +196,18 @@ def get_trending(test, category: list = None, mindate=None, maxdate=None, **kwar
     if category is not None:
         category = [CATEGORY_NAME.get(c) for c in category]
 
+    results = None
+
     if test:
         logger.debug("get_trending task")
         return
     try:
         with db_factory.get_instance():
-            result = PDbManager.get_trending_torrents_by_category(category, mindate, maxdate)
+            results = PDbManager.get_trending_torrents_by_category(category, mindate, maxdate)
 
-        for t, score, valid_date in result:
+        for t, score, valid_date in results:
             print("%s / %s / %s" % (t, score, valid_date))
     except ValueError as err:
         logger.warning(err)
-    return result
+    return results
 # endregion

@@ -3,7 +3,6 @@ General tool functions about request, parsing web content
 """
 import logging
 import requests
-from bs4 import BeautifulSoup
 import urllib.request
 import urllib.parse
 import torrent_parser as tp
@@ -37,6 +36,8 @@ def quote_url(url: str):
 
 
 def parsed_html_content(url, headers):
+    from bs4 import BeautifulSoup
+
     html = get_request_text(url, headers)
     soup = BeautifulSoup(html, 'html.parser')
 
@@ -44,6 +45,8 @@ def parsed_html_content(url, headers):
 
 
 def parsed_html_content_from_file(file):
+    from bs4 import BeautifulSoup
+
     with open(file, 'r') as f:
         return BeautifulSoup(f.read(), 'html.parser')
 
