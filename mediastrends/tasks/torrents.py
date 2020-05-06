@@ -195,9 +195,9 @@ def get_trending(test, category: list = None, mindate=None, maxdate=None, **kwar
 
     if category is not None:
         category = [CATEGORY_NAME.get(c) for c in category]
-    
+
     results = None
-    
+
     if test:
         logger.debug("get_trending task")
         return

@@ -14,7 +14,7 @@ def compute_trending(test, mindate=None, maxdate=None, **kwargs):
         return
 
     trendings_movies = []
-    
+
     try:
         with db_factory.get_instance():
             trendings_torrents = PDbManager.get_trending_torrents_by_category(Torrent._CAT_MOVIE, mindate, maxdate)
