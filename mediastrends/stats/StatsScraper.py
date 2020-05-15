@@ -65,6 +65,6 @@ class StatsScraper():
         for info_hashes in tools.batch(full_infos_hashes_list, self._BATCH_SIZE):
             try:
                 self.run(info_hashes)
-            except requests.exceptions.RequestException as err:
+            except (requests.exceptions.RequestException, OSError) as err:
                 logger.warning(err)
                 continue
