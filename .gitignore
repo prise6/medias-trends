@@ -3,6 +3,8 @@
 
 notes.txt
 scripts/draft.py
+scripts/test.py
+scripts/migrate.py
 
 config/*.ini
 config/indexers.yaml

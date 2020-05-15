@@ -8,6 +8,8 @@ class PIMDBObject(Model):
     rating = FloatField(null=True)
     year = IntegerField(null=True)
     cover_url = TextField(null=True)
+    genres = TextField(null=True)
+    language_codes = TextField(null=True)
 
     class Meta:
         database = db_factory.database_proxy

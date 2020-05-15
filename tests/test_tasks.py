@@ -1,5 +1,6 @@
 import unittest
 import datetime
+import requests
 from unittest.mock import patch, PropertyMock, MagicMock
 from mediastrends import db_factory
 from mediastrends.database.peewee.PDbManager import PDbManager
@@ -196,6 +197,14 @@ class TorrentsStats(TorentsTasks):
         self.assertEqual(nb_stats, 0)
 
         nb_stats = torrents_stats_with_tracker(self.mock_tracker, [])
+        self.assertEqual(nb_stats, 0)
+
+    @patch('mediastrends.stats.StatsScraper.run')
+    def test_torrents_stats_with_tracker_error(self, mock_run):
+        mock_run.side_effect = [OSError, requests.exceptions.RequestException]
+        nb_stats = torrents_stats_with_tracker(self.mock_tracker)
+        self.assertEqual(nb_stats, 0)
+        nb_stats = torrents_stats_with_tracker(self.mock_tracker)
         self.assertEqual(nb_stats, 0)
 
     @patch('mediastrends.tasks.torrents.torrents_stats_with_tracker', return_value=1)

@@ -233,6 +233,18 @@ This image will use an entrypoint to make mediastrends use easier. See dockerhub
 
 _To-do_
 
+## Changelog
+
+### version 0.1.2
+
+* resolve issue #9
+* add fields to movies
+* execute `scripts/migrate_db_v0.1.1_to_v0.1.2.py` to update database fields
+
+### version 0.1.1
+
+* first version
+
 
 ## Disclaimer
 

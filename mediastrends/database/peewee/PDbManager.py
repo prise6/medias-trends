@@ -83,6 +83,8 @@ class PDbManager(DbManager):
         movie._extras['rating'] = db_imdb_obj.rating
         movie._extras['cover_url'] = db_imdb_obj.cover_url
         movie._extras['year'] = db_imdb_obj.year
+        movie._extras['genres'] = db_imdb_obj.genres.split(';') if db_imdb_obj.genres else db_imdb_obj.genres
+        movie._extras['language_codes'] = db_imdb_obj.language_codes.split(';') if db_imdb_obj.language_codes else db_imdb_obj.language_codes
         return movie
 
     #
@@ -153,17 +155,18 @@ class PDbManager(DbManager):
         db_imdb_obj = PIMDBObject.get_or_none(imdb_id=obj.imdb_id)
         torrents_updated = 0
 
-        if not db_imdb_obj:
-            db_imdb_obj = PIMDBObject.create(
+        if not db_imdb_obj or update:
+            force_insert = not db_imdb_obj
+            db_imdb_obj = PIMDBObject(
                 imdb_id=obj.imdb_id,
                 title=obj.title,
                 rating=obj.rating,
                 cover_url=obj.cover_url,
-                year=obj.year
+                year=obj.year,
+                genres=';'.join(obj.genres) if obj.genres else None,
+                language_codes=';'.join(obj.language_codes) if obj.language_codes else None
             )
-        else:
-            if update:
-                db_imdb_obj.save()
+            db_imdb_obj.save(force_insert=force_insert)
 
         if obj.torrents:
             info_hashes_to_update = [torrent.info_hash for torrent in obj.torrents]
