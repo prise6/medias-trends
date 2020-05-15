@@ -78,11 +78,15 @@ class MovieClass(unittest.TestCase):
 
     def test_extras_attributes(self):
         movie = Movie("123", self.torrents)
-        data = {'cover_url': 'cover_url', 'title': 'Titre_1'}
+        data = {'cover_url': 'cover_url', 'title': 'Titre_1',
+                'genres': ['genre1', 'genre2'], 'language_codes': None}
         movie._extras.update(data)
 
         self.assertEqual(data.get('cover_url'), movie.cover_url)
         self.assertEqual(data.get('title'), movie.title)
+        self.assertEqual(data.get('genres'), movie.genres)
+        self.assertTrue('language_codes' in movie._extras)
+        self.assertEqual(data.get('language_codes'), movie.language_codes)
 
 
 class MovieCreation(unittest.TestCase):

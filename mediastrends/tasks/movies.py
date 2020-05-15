@@ -27,7 +27,7 @@ def compute_trending(test, mindate=None, maxdate=None, **kwargs):
     with db_factory.get_instance():
         for movie in trendings_movies:
             try:
-                PDbManager.imdb_object_to_db(movie)
+                PDbManager.imdb_object_to_db(movie, update=True)
             except Exception as err:
                 logger.error('Error during imdb object creation (%s): %s' % (movie.imdb_id, err))
 # endregion

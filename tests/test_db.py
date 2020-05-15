@@ -51,11 +51,20 @@ class InitDb(unittest.TestCase):
 
         cls.movies = []
         cls.movies.append(Movie(imdb_id="00455"))
-        cls.movies[0]._extras.update({'title': 'title_1', 'rating': 10, 'cover_url': 'cover_url_1', 'year': 2018})
+        cls.movies[0]._extras.update({'title': 'title_1', 'rating': 10,
+                                      'cover_url': 'cover_url_1', 'year': 2018,
+                                      'genres': ['genre1', 'genre2'],
+                                      'language_codes': None})
         cls.movies.append(Movie(imdb_id="00456"))
-        cls.movies[1]._extras.update({'title': 'title_2', 'rating': 5, 'cover_url': 'cover_url_2', 'year': 2020})
+        cls.movies[1]._extras.update({'title': 'title_2', 'rating': 5,
+                                      'cover_url': 'cover_url_2', 'year': 2020,
+                                      'genres': ['genre2', 'genre3'],
+                                      'language_codes': ['fr', 'en']})
         cls.movies.append(Movie(imdb_id="6563"))
-        cls.movies[2]._extras.update({'title': 'title_3', 'rating': 0, 'cover_url': 'cover_url_3', 'year': 1999})
+        cls.movies[2]._extras.update({'title': 'title_3', 'rating': 0,
+                                      'cover_url': 'cover_url_3', 'year': 1999,
+                                      'genres': [],
+                                      'language_codes': ['si']})
 
         cls.stats = [
             Stats(_TORRENTS[0], cls.trackers[1], valid_date=datetime.datetime.now() - datetime.timedelta(days=2), leechers=30, seeders=10, completed=100),
@@ -106,10 +115,23 @@ class ImdbObjInit(InitDb):
 
     def test_imdb_object_to_db(self):
         imdb_objs = self.movies
-        for imdb_obj in imdb_objs:
+        for idx, imdb_obj in enumerate(imdb_objs):
             db_imdb_obj, torrents_updated = PDbManager.imdb_object_to_db(imdb_obj)
             self.assertIsInstance(db_imdb_obj, PIMDBObject)
             self.assertEqual(torrents_updated, 0)
+            if db_imdb_obj.genres:
+                self.assertEqual(self.movies[idx].genres, db_imdb_obj.genres.split(';'))
+
+    def test_db_to_imdb_object(self):
+        db_imdb_obj = PIMDBObject.get_or_none(imdb_id="00455")
+        imdb_obj = PDbManager.db_to_movie(db_imdb_obj, [])
+        self.assertEqual(imdb_obj.genres, ["genre1", "genre2"])
+        self.assertEqual(imdb_obj.language_codes, None)
+
+        db_imdb_obj = PIMDBObject.get_or_none(imdb_id="6563")
+        imdb_obj = PDbManager.db_to_movie(db_imdb_obj, [])
+        self.assertEqual(imdb_obj.genres, None)
+        self.assertEqual(imdb_obj.language_codes, ['si'])
 
     def test_imdb_object_to_db_already_exist(self):
         db_imdb_obj, torrents_updated = PDbManager.imdb_object_to_db(self.movies[0])
@@ -261,6 +283,7 @@ def suite(loader):
     suite.addTest(TorrentInit('test_torrent_to_db'))
     suite.addTest(TorrentInit('test_torrent_to_db_already_exist'))
     suite.addTest(ImdbObjInit('test_imdb_object_to_db'))
+    suite.addTest(ImdbObjInit('test_db_to_imdb_object'))
     suite.addTest(ImdbObjInit('test_imdb_object_to_db_already_exist'))
     suite.addTest(ImdbObjInit('test_imdb_object_to_db_with_torrents'))
     suite.addTest(UpdateInit('test_update_torrent'))
