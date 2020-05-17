@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 
 class TrendsEngine(ABC):
 
+    def __init__(self, config):
+        self._config = config
+
     @abstractmethod
     def score_list(self, stats_collections: List[StatsCollection]) -> List[float]:
         return
@@ -56,16 +59,23 @@ class NormalizedTrendsEngine(TrendsEngine):
             else:
                 concat_df = sc_df
 
-        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean()
-        score_df['score'] = (score_df['leechers'] * .9 + score_df['completed'] * .1) * score_df['leechers'] / score_df['seeders']
+        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).agg(['mean', 'size'])
+        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')])\
+                            .agg({'completed': ['mean', 'size'], 'seeders': ['mean'], 'leechers': ['mean']})
+
+        score_df['score'] = ((score_df['seeders']['mean'] * self._config.getfloat('trends_manager', 'weight_seeders')
+                              + score_df['completed']['mean'] * self._config.getfloat('trends_manager', 'weight_completed')
+                              + score_df['leechers']['mean'] * self._config.getfloat('trends_manager', 'weight_leechers'))
+                             * self._config.getfloat('trends_manager', 'lambda') * np.exp(-self._config.getfloat('trends_manager', 'lambda') * score_df['completed']['size']))
+        score_df = score_df.drop(['completed', 'seeders', 'leechers'], axis=1, level=0)
+        score_df.columns = score_df.columns.droplevel(level=1)
         score_df = score_df.reset_index()
-        # score_df = score_df.reset_index(['valid_date', 'sc_index'])
         score_max_df = score_df.groupby(['tracker_name']).max().rename(columns={'score': 'score_max'})[['score_max']]
         score_df = score_df.merge(score_max_df, how="inner", on=["tracker_name"], validate="many_to_one")
         score_df['score_normalized'] = score_df['score'] / score_df['score_max'] * 100
         score_df = score_df.groupby([pd.Grouper('sc_index'), pd.Grouper('tracker_name')]).last().groupby(['sc_index'])[['score_normalized']].mean().round(2)
 
-        return score_df.score_normalized.tolist()
+        return score_df.sort_index().score_normalized.tolist()
 
     def score(self, stats_collection: StatsCollection):
         logger.warning('NormalizedTrendsEngine must have other stats_collection to score more precisely')

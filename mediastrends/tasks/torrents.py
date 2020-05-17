@@ -1,4 +1,3 @@
-import datetime
 import logging
 from mediastrends import config, db_factory, indexers_config, CATEGORY_NAME, trackers_config
 from mediastrends.database.peewee.PDbManager import PDbManager
@@ -163,15 +162,15 @@ def torrents_stats_with_tracker(tracker: Tracker, category: list = None):
 
 
 # region
-def compute_trending(test, category: list = None, mindate=None, maxdate=datetime.datetime.now(), **kwargs):
+def compute_trending(test, category: list = None, **kwargs):
     if category is not None:
         category = [CATEGORY_NAME.get(c) for c in category]
     if test:
         logger.debug("compute_trending task")
         return
     with db_factory.get_instance():
-        trends_manager = TrendsManager(config, PDbManager, category, mindate, maxdate)
-        trends_manager.evaluate(NormalizedTrendsEngine())
+        trends_manager = TrendsManager(config, PDbManager, category)
+        trends_manager.evaluate(NormalizedTrendsEngine(config))
         trends_manager.save_trends()
 # endregion
 
@@ -191,7 +190,7 @@ def update_status(test, category: list = None, **kwargs):
 
 
 # region
-def get_trending(test, category: list = None, mindate=None, maxdate=None, **kwargs):
+def get_trending(test, category: list = None, mindate=None, maxdate=None, delta_hours=1, **kwargs):
 
     if category is not None:
         category = [CATEGORY_NAME.get(c) for c in category]
@@ -203,7 +202,7 @@ def get_trending(test, category: list = None, mindate=None, maxdate=None, **kwar
         return
     try:
         with db_factory.get_instance():
-            results = PDbManager.get_trending_torrents_by_category(category, mindate, maxdate)
+            results = PDbManager.get_trending_torrents_by_category(category, mindate, maxdate, delta_hours)
 
         for t, score, valid_date in results:
             print("%s / %s / %s" % (t, score, valid_date))

@@ -32,7 +32,13 @@ def group_torrents_by_name(torrents: List[Torrent]) -> dict:
     groups = {}
     torrents_name = [t.name for t in torrents]
     torrents_name_parsed = [PTN.parse(name) for name in torrents_name]
-    torrents_name_parsed_title = [el.get('title', '').lower() for el in torrents_name_parsed]
+    torrents_name_parsed_title = []
+    for idx, el in enumerate(torrents_name_parsed):
+        title = el.get('title', None)
+        if not (title and title.strip() != ''):
+            title = torrents_name[idx]
+        torrents_name_parsed_title.append(title.lower())
+
     nb_torrents = len(torrents_name_parsed)
     similarity_matrix = np.zeros((nb_torrents, nb_torrents))
     np.fill_diagonal(similarity_matrix, 0)

@@ -90,6 +90,7 @@ target/
 # VS Code
 .vscode/
 .devcontainer.json
+devcontainer.json
 
 # Spyder
 .spyproject/

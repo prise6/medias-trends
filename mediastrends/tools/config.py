@@ -1,5 +1,6 @@
 import os
 import yaml
+import datetime
 import configparser
 from configparser import ExtendedInterpolation
 
@@ -16,7 +17,15 @@ _CONFIG_FILE_NAME = 'mediastrends.%s.ini'
 
 
 def init_config():
-    config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
+    config = configparser.ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        converters={
+            'datetime': lambda s: datetime.datetime.strptime(s, '%Y-%m-%d %H:%M'),
+            'list': lambda s: s.split(',')
+        },
+        allow_no_value=True
+        # converters={'datetime': datetime.datetime}
+    )
 
     return config
 

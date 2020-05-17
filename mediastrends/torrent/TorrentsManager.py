@@ -1,5 +1,6 @@
 import datetime
 import logging
+from mediastrends import STATUS_NAME
 from mediastrends.database.DbManager import DbManager
 from mediastrends.torrent.Torrent import Torrent
 
@@ -16,11 +17,20 @@ class TorrentsManager():
         self._torrents_trending_lookup = []
         self._torrents_candidates = []
 
+        self._max_date = self.cfg.getdatetime('torrents_manager', 'max_date', fallback=None)
+        self._delta_hours = self.cfg.getint('torrents_manager', 'delta_hours', fallback=1)
+        self._min_date = self.cfg.getdatetime('torrents_manager', 'min_date', fallback=None)
+        self._candidates_status = [STATUS_NAME[s] for s in self.cfg.getlist('torrents_manager', 'candidates_status', fallback=['new', 'follow'])]
+        self._new_delay = self.cfg.getint('stats_manager', 'new_delay', fallback=3)
+
     @property
     def torrents_candidates(self):
         if not self._torrents_candidates:
             try:
-                self._torrents_candidates = self._dbmanager.get_torrents_by_status([Torrent._STATUS_NEW, Torrent._STATUS_FOLLOW], self._category)
+                self._torrents_candidates = self._dbmanager.get_torrents_by_status(
+                    status=self._candidates_status,
+                    category=self._category
+                )
             except ValueError:
                 logger.warning("Candidate torrents are empty.")
 
@@ -30,7 +40,12 @@ class TorrentsManager():
     def torrents_trending(self):
         if not self._torrents_trending:
             try:
-                self._torrents_trending = self._dbmanager.get_trending_torrents_by_category(self._category)
+                self._torrents_trending = self._dbmanager.get_trending_torrents_by_category(
+                    category=self._category,
+                    min_date=self._min_date,
+                    max_date=self._max_date,
+                    delta_hours=self._delta_hours
+                )
             except ValueError:
                 logger.warning("Trending torrents are empty")
         return self._torrents_trending
@@ -66,7 +81,7 @@ class TorrentsManager():
         for torrent in self.torrents_candidates:
             if torrent.status == Torrent._STATUS_NEW:
                 nb_new += 1
-                if (today - torrent.pub_date).days >= self.cfg.getint('stats_manager', 'new_delay'):
+                if (today - torrent.pub_date).days >= self._new_delay:
                     if torrent.info_hash in self.torrents_trending_lookup:
                         nb_new_follow += 1
                         torrent.follow()

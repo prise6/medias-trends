@@ -117,7 +117,7 @@ class DbManager(ABC):
         return
 
     @abstractstaticmethod
-    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None):
+    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None, delta_hours=1):
         return
 
     @abstractstaticmethod
