@@ -28,6 +28,12 @@ else
     JACKETT=${JACKETT}
 fi
 
+if [ -z "${TIMEOUT}" ]; then
+    TIMEOUT="15"
+else 
+    TIMEOUT=${TIMEOUT}
+fi
+
 if [ -z "${MEDIASTRENDS_CACHE_TIME}" ]; then
     CACHE_TIME=3600*6
 else
@@ -52,7 +58,7 @@ if [ "$1" = 'stats_movie_torrents' ] \
     || [ "$1" = 'add_movie_torrents' ] \
     || [ "$1" = 'compute_movie_trends' ] \
     || [ "$1" = 'get_movie_trends' ]; then
-    CMD="./wait-for-it.sh $JACKETT -- mediastrends database create && make $@"
+    CMD="./wait-for-it.sh $JACKETT -t $TIMEOUT -- mediastrends database create && make $@"
 else
     CMD="$@"
 fi
