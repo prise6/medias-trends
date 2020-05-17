@@ -5,7 +5,7 @@ ENV USERNAME=mediastrends
 ARG PUID=1001
 ARG PGID=1001
 ARG WORKDIR=/app
-ARG VERSION=0.1.2
+ARG VERSION=0.1.3
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
@@ -48,7 +48,7 @@ RUN groupadd --gid $PGID $USERNAME \
 
 RUN mkdir -p $WORKDIR/scripts $WORKDIR/logs
 
-COPY scripts/add_movie_torrents.py scripts/stats_movie_torrents.py scripts/
+COPY scripts/add_movie_torrents.py scripts/stats_movie_torrents.py scripts/migrate_db_v0.1.1_to_v0.1.2.py scripts/
 COPY Makefile .
 
 ENTRYPOINT ["tini", "--", "/entrypoint.sh"]

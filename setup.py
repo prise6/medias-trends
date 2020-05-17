@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='mediastrends',
-    version='0.1.2',
+    version='0.1.3',
     entry_points={
         'console_scripts': ['mediastrends=mediastrends.cli:main']
     },
