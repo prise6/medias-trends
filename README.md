@@ -68,7 +68,7 @@ Content of mediastrends.ini (default config)
 [directory]
 base=
 data=
-log=${base}/logs
+logs=${base}/logs
 sqlite=
 
 [db]
@@ -92,11 +92,24 @@ batch_size=50
 tries=10
 delay=5
 
-[stats_manager]
-new_delay=3
+[torrents_manager]
+; new_delay=3
+; delta_hours=1
+; min_date=YYYY-mm-dd HH:MM
+; max_date=YYYY-mm-dd HH:MM
+; candidates_status=new,follow
 
-[trends]
-tau=0.2
+[trends_manager]
+; min_date=YYYY-mm-dd HH:MM
+; max_date=YYYY-mm-dd HH:MM
+; delta_days=31
+; torrents_status=new,follow
+; tau=0.2
+; max_trendings=50
+weight_seeders=0.4
+weight_completed=0.4
+weight_leechers=0.2
+lambda=0.8
 
 [jackettapi]
 scheme=http
@@ -234,6 +247,11 @@ This image will use an entrypoint to make mediastrends use easier. See dockerhub
 _To-do_
 
 ## Changelog
+
+### version 0.1.3
+
+* resolve issue #12 (wrong score order)
+* new score logic with parameter to tune in config
 
 ### version 0.1.2
 
