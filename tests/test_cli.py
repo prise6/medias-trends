@@ -96,6 +96,17 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(parser.parsed_args_dict.get('category'), ['movies', 'series', 'unknown'])
         self.assertIsInstance(parser.parsed_args_dict.get('mindate'), datetime.datetime)
         self.assertIsInstance(parser.parsed_args_dict.get('maxdate'), datetime.datetime)
+        self.assertEqual(parser.parsed_args_dict.get('delta_hours'), 1)
+
+    def test_torrents_trends_get_parser_with_delta(self):
+        parser = cli.TorrentsTrendsGetParser()
+        args = '-c movies series unknown -dh 8 -dx 202004021200'.split(' ')
+        parser.execute(args)
+        self.assertTrue(self.mocks['get_trending'].called)
+        self.assertEqual(parser.parsed_args_dict.get('category'), ['movies', 'series', 'unknown'])
+        self.assertIsInstance(parser.parsed_args_dict.get('maxdate'), datetime.datetime)
+        self.assertEqual(parser.parsed_args_dict.get('mindate'), None)
+        self.assertIsInstance(parser.parsed_args_dict.get('delta_hours'), int)
 
     def test_torrents_trends_compute_parser(self):
         parser = cli.TorrentsTrendsComputeParser()

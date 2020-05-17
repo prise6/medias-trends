@@ -78,6 +78,10 @@ def _argument_maxdate(parser):
     parser.add_argument("-dx", "--maxdate", help="Max datetime: YYYYMMDDHHMM", type=lambda s: datetime.datetime.strptime(s, '%Y%m%d%H%M'))
 
 
+def _argument_deltahours(parser):
+    parser.add_argument("-dh", "--delta-hours", help="Delta hours to define mindate: mindate := maxdate - delta_hours", type=int, default=1)
+
+
 def _argument_tracker(parser):
     parser.add_argument("-t", "--tracker-name", help="Tracker name", type=str, choices=trackers_config.keys(), required=True)
 
@@ -155,6 +159,7 @@ class TorrentsTrendsGetParser(AbstractParser):
         _argument_category(self.parser)
         _argument_mindate(self.parser)
         _argument_maxdate(self.parser)
+        _argument_deltahours(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):
@@ -165,8 +170,6 @@ class TorrentsTrendsComputeParser(AbstractParser):
 
     def build(self):
         _argument_category(self.parser)
-        _argument_mindate(self.parser)
-        _argument_maxdate(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):
@@ -259,6 +262,7 @@ class MoviesTrendsGetParser(AbstractParser):
     def build(self):
         _argument_mindate(self.parser)
         _argument_maxdate(self.parser)
+        _argument_deltahours(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):
@@ -268,8 +272,6 @@ class MoviesTrendsGetParser(AbstractParser):
 class MoviesTrendsComputeParser(AbstractParser):
 
     def build(self):
-        _argument_mindate(self.parser)
-        _argument_maxdate(self.parser)
         _argument_test(self.parser)
 
     def task(self, **kwargs):
