@@ -338,13 +338,15 @@ class PDbManager(DbManager):
         result = result.where(expression)
         return [PDbManager.db_to_torrent(db_torrent) for db_torrent in result]
 
-    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None):
+    def get_trending_torrents_by_category(category: list = None, min_date=None, max_date=None, delta_hours=1):
 
-        if not min_date and not max_date:
+        if not max_date:
             max_date = PDbManager.get_max_trend_date_by_category(category)
             if max_date is None:
                 raise ValueError("Maximum trend date is null")
-            min_date = max_date - datetime.timedelta(hours=1)
+
+        if not min_date:
+            min_date = max_date - datetime.timedelta(hours=delta_hours)
 
         sub_q = PTrends.select(PTrends.id, fn.row_number().over(
             partition_by=[PTrends.torrent],
@@ -365,13 +367,15 @@ class PDbManager(DbManager):
 
         return [(PDbManager.db_to_torrent(db_trends.torrent), db_trends.score, db_trends.valid_date) for db_trends in result]
 
-    def get_trending_movies(min_date=None, max_date=None):
+    def get_trending_movies(min_date=None, max_date=None, delta_hours=1):
 
-        if not min_date and not max_date:
+        if not max_date:
             max_date = PDbManager.get_max_trend_date_by_category(Torrent._CAT_MOVIE)
             if max_date is None:
                 raise ValueError("Maximum trend date is null")
-            min_date = max_date - datetime.timedelta(hours=1)
+
+        if not min_date:
+            min_date = max_date - datetime.timedelta(hours=delta_hours)
 
         sub_q = PTrends.select(PTrends.torrent_id, fn.row_number().over(
             partition_by=[PTrends.torrent],
