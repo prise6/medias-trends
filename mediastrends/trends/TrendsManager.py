@@ -48,18 +48,18 @@ class TrendsManager():
 
     def evaluate(self, trend_engine: TrendsEngine, stats_collections: list = None):
 
-        if not stats_collections:
+        if stats_collections is None:
             stats_collections = self.candidates_stats_collections
 
         final_stats_collections = []
         for sc in stats_collections:
             if not sc.is_empty():
                 df = sc.dataframe
-                sc.dataframe = df[:self._max_date]
+                sc.dataframe = df[self._min_date:self._max_date]
                 final_stats_collections.append(sc)
 
         nb_to_keep = int(np.minimum(np.ceil(self._tau * len(final_stats_collections)), self._max_trendings))
-        logger.debug("Number of torrents to keep: %s", nb_to_keep)
+        logger.debug("Number of torrents to keep: %s / %s", nb_to_keep, len(final_stats_collections))
 
         if nb_to_keep == 0:
             return self

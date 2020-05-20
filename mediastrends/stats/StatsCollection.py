@@ -5,7 +5,7 @@ class StatsCollection():
 
     def __init__(self, stats: list):
         self._stats = stats
-        self._dataframe = pd.DataFrame()
+        self._dataframe = None
         self._valid_date = None
         self._score = None
 
@@ -15,7 +15,7 @@ class StatsCollection():
 
     @property
     def dataframe(self):
-        if not self.is_empty():
+        if not self.is_empty() and self._dataframe is None:
             self.create_dataframe()
         return self._dataframe
 
