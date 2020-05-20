@@ -55,7 +55,7 @@ jobs:
           repository: prise6/medias-trends/mediastrends-core
           tag_with_ref: True
       - name: Set up Docker Buildx
-        uses: crazy-max/ghaction-docker-buildx@master
+        uses: crazy-max/ghaction-docker-buildx@v1
         with:
           buildx-version: latest
       - name: Login dockerhub
