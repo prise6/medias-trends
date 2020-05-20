@@ -106,10 +106,10 @@ delay=5
 ; torrents_status=new,follow
 ; tau=0.2
 ; max_trendings=50
-weight_seeders=0.4
-weight_completed=0.4
-weight_leechers=0.2
-lambda=0.8
+; weight_seeders=0.4
+; weight_completed=0.4
+; weight_leechers=0.2
+; lambda=0.8
 
 [jackettapi]
 scheme=http
@@ -247,6 +247,12 @@ This image will use an entrypoint to make mediastrends use easier. See dockerhub
 _To-do_
 
 ## Changelog
+
+### version 0.1.4
+
+* fix score (size colum was wrong)
+* add trends tests
+* I recommand to truncate _ptrends_ table and set _status=1_ for torrents
 
 ### version 0.1.3
 

@@ -35,10 +35,8 @@ class ClassicTrendsEngine(TrendsEngine):
             logger.warning('stats collection is empty')
             return 0
 
-        # stats_collection.create_dataframe()
         dataframe = stats_collection.dataframe
 
-        # leecher_trend = dataframe.groupby(pd.Grouper(freq='D')).mean().tail(1).leechers.item()
         intermediaire = dataframe.groupby([pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean().groupby('valid_date').mean().tail(1)
         completed_trend = intermediaire.completed.item()
         leecher_trend = intermediaire.leechers.item()
@@ -47,6 +45,13 @@ class ClassicTrendsEngine(TrendsEngine):
 
 
 class NormalizedTrendsEngine(TrendsEngine):
+
+    def __init__(self, config):
+        super().__init__(config)
+        self._weight_completed = self._config.getfloat('trends_manager', 'weight_completed', fallback=0.4)
+        self._weight_seeders = self._config.getfloat('trends_manager', 'weight_seeders', fallback=0.4)
+        self._weight_leechers = self._config.getfloat('trends_manager', 'weight_leechers', fallback=0.2)
+        self._lambda = self._config.getfloat('trends_manager', 'lambda', fallback=0.8)
 
     def score_list(self, stats_collections: List[StatsCollection]) -> List[float]:
 
@@ -59,18 +64,14 @@ class NormalizedTrendsEngine(TrendsEngine):
             else:
                 concat_df = sc_df
 
-        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).agg(['mean', 'size'])
-        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')])\
-                            .agg({'completed': ['mean', 'size'], 'seeders': ['mean'], 'leechers': ['mean']})
-
-        score_df['score'] = ((score_df['seeders']['mean'] * self._config.getfloat('trends_manager', 'weight_seeders')
-                              + score_df['completed']['mean'] * self._config.getfloat('trends_manager', 'weight_completed')
-                              + score_df['leechers']['mean'] * self._config.getfloat('trends_manager', 'weight_leechers'))
-                             * self._config.getfloat('trends_manager', 'lambda') * np.exp(-self._config.getfloat('trends_manager', 'lambda') * score_df['completed']['size']))
-        score_df = score_df.drop(['completed', 'seeders', 'leechers'], axis=1, level=0)
-        score_df.columns = score_df.columns.droplevel(level=1)
+        score_df = concat_df.groupby([pd.Grouper('sc_index'), pd.Grouper(freq='D'), pd.Grouper('tracker_name')]).mean()
+        score_df['elapsed_days'] = score_df.groupby(['sc_index', 'tracker_name']).cumcount() + 1
+        score_df['score'] = ((score_df['seeders'] * self._weight_seeders
+                              + score_df['completed'] * self._weight_completed
+                              + score_df['leechers'] * self._weight_leechers)
+                             * self._lambda * np.exp(- self._lambda * score_df['elapsed_days']))
         score_df = score_df.reset_index()
-        score_max_df = score_df.groupby(['tracker_name']).max().rename(columns={'score': 'score_max'})[['score_max']]
+        score_max_df = score_df.drop_duplicates(subset=['sc_index', 'tracker_name'], keep='last').groupby(['tracker_name']).max().rename(columns={'score': 'score_max'})[['score_max']]
         score_df = score_df.merge(score_max_df, how="inner", on=["tracker_name"], validate="many_to_one")
         score_df['score_normalized'] = score_df['score'] / score_df['score_max'] * 100
         score_df = score_df.groupby([pd.Grouper('sc_index'), pd.Grouper('tracker_name')]).last().groupby(['sc_index'])[['score_normalized']].mean().round(2)
