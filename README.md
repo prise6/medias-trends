@@ -248,6 +248,12 @@ _To-do_
 
 ## Changelog
 
+### version 0.1.4
+
+* fix score (size colum was wrong)
+* add trends tests
+* I recommand to truncate _ptrends_ table and set _status=1_ for torrents
+
 ### version 0.1.3
 
 * resolve issue #12 (wrong score order)
